@@ -4,6 +4,3 @@
 [submodule "crypto_api"]
 	path = crypto_api
 	url = git@github.com:erikdejonge/crypto_api.git
-[submodule "mailer"]
-	path = mailer
-	url = git@github.com:erikdejonge/mailer.git
