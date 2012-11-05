@@ -1,21 +1,22 @@
-# pylint: disable-msg=C0103
-# pylint: enable-msg=C0103
-# tempfile regex format
-#
-# pylint: disable-msg=C0111
-# missing docstring
-#
-# pylint: disable-msg=W0232
-# no __init__ method
-#
-# pylint: disable-msg=R0903
-# to few public methods
-#
-# DISABLED_ylint: disable-msg=R0201
-# method could be a function
-#
+
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
+
+"""
+
+Python delayed task baseclass with strong focus on security. Follows the threading/subprocess api pattern. Uses couchdb as a backend (taskqueue).
+
+This source code is licensed under the GNU General Public License,
+Version 3. http://www.gnu.org/licenses/gpl-3.0.en.html
+
+Copyright (C)
+
+Erik de Jonge <erik@a8.nl>
+Actve8 BV
+Rotterdam
+www.a8.nl
+
+"""
 
 import time
 import marshal
@@ -28,7 +29,8 @@ import StringIO
 from couchdb_api import CouchDBServer, SaveObject
 from argparse import ArgumentParser
 
-def send_error(subject, body):
+def send_error(displayfrom, subject, body):
+    """ send email error report to administrator """
     debug = True
     if debug:
         print "== send error =="
@@ -39,13 +41,14 @@ def send_error(subject, body):
         return
 
     email = mailer.Email()
-    email.reply_email = email.to_email = ("erik@a8.nl", "Cryptobox")
+    email.reply_email = email.to_email = ("erik@a8.nl", displayfrom)
     email.subject = subject
     email.body = mailer.Body(body, txt=body)
     email.send()
 
 
 def make_p_callable(the_callable, params):
+    """ takes a function with parameters and converts it to a pickle """
     p_callable = {}
     p_callable["marshaled_bytecode"] = marshal.dumps(the_callable.func_code)
     p_callable["pickled_name"] = pickle.dumps(the_callable.func_name)
@@ -55,19 +58,8 @@ def make_p_callable(the_callable, params):
     return p_callable
 
 
-class CallableVerifyError(Exception):
-    pass
-
-
-class NoCallable(Exception):
-    pass
-
-
-class PivateKeyNotImplemented(Exception):
-    pass
-
-
-def get_public_key_cryptobox():
+def get_public_key_application():
+    """ the public key of the application, the queue worker has the private key """
     return """  -----BEGIN PUBLIC KEY-----
                 MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAuPUGtdCh4bYHVb+mTnZ+
                 GIo8h2Yl8NmlW08QjKs0Y5XDnI99tYenjFilXUJNquqJN3TvGxv4jgJOcZZQ4hSF
@@ -79,55 +71,73 @@ def get_public_key_cryptobox():
                 -----END PUBLIC KEY-----""".strip()
 
 class NoDatabase(Exception):
+    """ exception thrown when no database is available """
     pass
 
-class CBCommand(SaveObject):
+class CryptoTask(SaveObject):
+    """ async execution, where the function 'run' is securely saved in couchdb. """
+    # the pickled executable
     m_callable_p64s = None
+    # result after execution
     m_result = ""
+    # execution done
     m_done = False
+    # was the execution succesfull, false if an exception in the callable occured
     m_success = False
-    m_info = {}
+    # class created
     m_created_time = None
+    # time execution started
     m_start_execution = None
+    # time execution stopped
     m_stop_execution = None
+    # the signature of the pickled executable
     m_signature_p64s = None
+    # max time the execution may run
     m_max_lifetime = 60 * 5
+    # progress counter
     m_progress = 0
+    # total for progress calculation
     m_total = 100
+    # time in seconds the excution will take, for progress calculation
     m_expected_duration = 0
+    # excution is running
     m_running = False
+    # the object type
     m_command_object = None
+    # public keys of the command queue
     public_keys = []
 
     def __init__(self, dbase=None, object_id=None):
         if object_id:
             self.object_id = object_id
         self.m_command_object = self.get_object_type()
-        self.public_keys.append(get_public_key_cryptobox())
-        self.object_type = "CBCommand"
-        super(CBCommand, self).__init__(dbase=dbase, comment="this object represents a command and stores intermediary results")
+        self.public_keys.append(get_public_key_application())
+        self.object_type = "CryptoTask"
+        super(CryptoTask, self).__init__(dbase=dbase, comment="this object represents a command and stores intermediary results")
         self.m_created_time = time.time()
 
     def save(self, *argc, **argv):
-        #if len(self.collection())>
-        #raise Exception("The command queue is full")
-        super(CBCommand, self).save(*argc, **argv)
+        super(CryptoTask, self).save(*argc, **argv)
         return self.object_id
 
     def total_execution_time(self):
+        """ calculate total time """
         if self.m_stop_execution:
             return self.m_stop_execution - self.m_start_execution
         raise Exception("total_execution_time: m_stop_execution not set")
 
     def execution_time(self):
+        """ calculate running time """
         if not self.m_start_execution:
             return 0
         return time.time() - self.m_start_execution
 
     def life_time(self):
+        """ calculate life time of object """
         return time.time() - self.m_created_time
 
     def execute_callable(self, p_callable, signature):
+        """ verify the callable, unpack, and call """
         verified = False
         for public_key in self.public_keys:
             if crypto_api.verify(public_key, pickle.dumps(str(p_callable["params"]) + str(p_callable["marshaled_bytecode"])), signature):
@@ -141,11 +151,13 @@ class CBCommand(SaveObject):
         return the_callable(self, *p_callable["params"])
 
     def set_execution_timer(self):
+        """ start the timer """
         self.m_start_execution = time.time()
         self.m_running = True
         self.save()
 
     def execute(self):
+        """ set up structures and execute """
         if self.m_done:
             return
         if not self.m_callable_p64s:
@@ -208,7 +220,7 @@ class CBCommand(SaveObject):
             time.sleep(0.5)
         return
 
-class Add(CBCommand):
+class Add(CryptoTask):
     def run(self, val1, val2):
         self = self
         val1 = 5 / 0
