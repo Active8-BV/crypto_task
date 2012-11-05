@@ -1,2 +1,4 @@
-git submodule foreach --recursive git init
-git submodule foreach --recursive git update
+git submodule init
+git submodule update
+git submodule foreach --recursive git submodule init
+git submodule foreach --recursive git submodule update
