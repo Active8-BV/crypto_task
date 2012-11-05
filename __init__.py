@@ -70,9 +70,6 @@ def get_public_key_application():
                 EQIDAQAB
                 -----END PUBLIC KEY-----""".strip()
 
-class NoDatabase(Exception):
-    """ exception thrown when no database is available """
-    pass
 
 class CryptoTask(SaveObject):
     """ async execution, where the function 'run' is securely saved in couchdb. """
@@ -144,7 +141,7 @@ class CryptoTask(SaveObject):
                 verified = True
                 break
         if not verified:
-            raise CallableVerifyError("The callable could not be verified")
+            raise Exception("The callable could not be verified")
 
         the_callable = types.FunctionType(marshal.loads(p_callable["marshaled_bytecode"]), globals(), pickle.loads(p_callable["pickled_name"]),
                                           pickle.loads(p_callable["pickled_arguments"]), pickle.loads(p_callable["pickled_closure"]))
@@ -161,7 +158,7 @@ class CryptoTask(SaveObject):
         if self.m_done:
             return
         if not self.m_callable_p64s:
-            raise NoCallable("There is no callable saved in this object")
+            raise Exception("There is no callable saved in this object")
         if not self.m_start_execution:
             self.set_execution_timer()
         # general exception
@@ -188,6 +185,7 @@ class CryptoTask(SaveObject):
         self.save()
 
     def start(self, *argc, **argv):
+        """ start the asynchronous excution of this task """
         argv = argv
         # no member found
         # pylint: disable-msg=E1101
@@ -202,12 +200,14 @@ class CryptoTask(SaveObject):
         self.save()
 
     def get_private_key(self):
+        """ get private key of the execution engine """
         self = self
-        raise PivateKeyNotImplemented("get_private_key_cryptobox is not implemented, should return private key in RSA form")
+        raise Exception("get_private_key is not implemented, should return private key in RSA form")
 
     def join(self, progressf=None):
+        """ wait for completion of this task """
         if not self._dbase:
-            raise NoDatabase("No valid database avila")
+            raise Exception("No valid database avila")
         last_progress = 0
         while self.load():
             if self.m_done:
@@ -219,47 +219,3 @@ class CryptoTask(SaveObject):
                         last_progress = self.m_progress
             time.sleep(0.5)
         return
-
-class Add(CryptoTask):
-    def run(self, val1, val2):
-        self = self
-        val1 = 5 / 0
-        return val1 + val2
-
-class Test(SaveObject):
-    m_val1 = "yes"
-
-
-def main():
-    parser = ArgumentParser()
-    parser.add_argument("-w", "--workers", dest="workers", help="start N worker process", metavar="N")
-    args = parser.parse_args()
-    args = args
-
-    dbase_name = "command_test"
-    dbase = CouchDBServer(dbase_name)
-
-    test = Test(dbase)
-    for ttt in test.collection():
-        ttt.delete()
-    test.save()
-
-    addc = Add(dbase)
-
-    for i in addc.collection():
-        i.delete()
-
-    addc.start(5, 4)
-
-    for i in addc.collection():
-        i.execute()
-        print "run", i.running_time()
-        print "life", i.life_time()
-        print "exec", i.execution_time()
-        i.delete()
-
-
-
-
-if __name__ == "__main__":
-    main()
