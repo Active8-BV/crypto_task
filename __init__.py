@@ -149,6 +149,11 @@ class CryptoTask(SaveObject):
         super(CryptoTask, self).__init__(dbase=dbase, comment="this object represents a command and stores intermediary results")
         self.m_created_time = time.time()
 
+    def display(self):
+        """ display string """
+
+        return self.m_command_object + " / " + self.object_id
+
     def save(self, *argc, **argv):
         super(CryptoTask, self).save(*argc, **argv)
         return self.object_id

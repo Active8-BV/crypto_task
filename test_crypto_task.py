@@ -85,6 +85,11 @@ class Add(CryptoTask):
 class AddCrash(CryptoTask):
     """ this task raises an exception """
 
+    def get_private_key(self):
+        """ required method, to encrypt and sign data """
+
+        return get_private_key_cryptobox()
+
     def run(self, val1, val2):
         """ divide by zero exception """
 
@@ -104,23 +109,30 @@ def main():
 
     dbase_name = "command_test"
     dbase = CouchDBServer(dbase_name)
+
+    # delete all previous commands
+    for i in Add(dbase).collection():
+        print "deleting: ", i.display()
+        i.delete()
+
     task_list = []
     for i in range(0, 1):
         addc = Add(dbase)
-        print "start: " + str(i)
+        print "start: " + addc.display()
         addc.start(5, 4)
         task_list.append(addc)
 
         add_ex = AddCrash(dbase)
-        print "start: " + str(i)
+        print "start: " + add_ex.display()
         add_ex.start(5, 4)
         task_list.append(add_ex)
 
+    print "waiting for task completion"
     for task in task_list:
         task.join(progress_callback)
 
     for task in task_list:
-        print "result:", task.m_result
+        print "result:", task.display() + " --> " + task.m_result
         task.delete()
 
 
