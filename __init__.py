@@ -26,8 +26,8 @@ import crypto_api
 import mailer
 import traceback
 import StringIO
-from couchdb_api import CouchDBServer, SaveObject
-from argparse import ArgumentParser
+from couchdb_api import SaveObject
+
 
 def send_error(displayfrom, subject, body):
     """ send email error report to administrator """

@@ -23,7 +23,7 @@ www.a8.nl
 
 from couchdb_api import CouchDBServer
 from __init__ import CryptoTask
-
+from argparse import ArgumentParser
 
 class Add(CryptoTask):
     """ this task raises an exception """

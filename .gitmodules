@@ -7,6 +7,3 @@
 [submodule "mailer"]
 	path = mailer
 	url = git@github.com:erikdejonge/mailer.git
-[submodule "html2text"]
-	path = html2text
-	url = git://github.com/aaronsw/html2text.git
