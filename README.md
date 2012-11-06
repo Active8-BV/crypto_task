@@ -5,7 +5,7 @@ Python delayed task baseclass with strong focus on security. Follows the threadi
 
 Scalable so it can be used in a webcluster with a couchdb cluster.
 
-Works in conjunction with crypto_taskworker
+Works in conjunction with https://github.com/erikdejonge/crypto_taskworker
 
 License
 ===========
