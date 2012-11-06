@@ -45,7 +45,7 @@ class Add(CryptoTask):
 
     def run(self, val1, val2):
         return val1 + val2
-</pre>
+```
 
 The server is only allowed to run code from trusted clients so we have to private a private key to the base class.
 
@@ -64,14 +64,14 @@ class Add(CryptoTask):
 
     def run(self, val1, val2):
         return val1 + val2
-</pre>
+```
 
 The baseclass has to variables
 
 <pre>
 m_progress
 m_total
-</pre>
+```
 
 which can be read by a progress callback to show a progressbar for example
 
@@ -104,7 +104,7 @@ class Add(CryptoTask):
         time.sleep(duration)
         self = self
         return val1 + val2
-</pre>
+```
 
 Make an instance of the class and start it.
 
@@ -114,7 +114,7 @@ dbase = CouchDBServer(dbase_name)
 addc = Add(dbase)
 print "start: " + addc.display()
 addc.start(self.cnt, 1)
-</pre>
+```
 
 This call immediatly returns.
 
@@ -123,16 +123,16 @@ You can wait for completion with the join function which also takes a callback f
 <pre>
         print "waiting for task completion"
         addc.join(progress_callback)
-</pre>
+```
 
 results are ready
 
 <pre>
 print "result: "+addc.display() + " --> " + str(addc.m_result)
-</pre>
+```
 
 and delete the command, commands are deleted after five minutes (if they are not running anymore)
 
 <pre>
 addc.delete()
-</pre>
+```
