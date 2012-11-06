@@ -68,7 +68,7 @@ class Add(CryptoTask):
 
 The baseclass has to variables
 
-<pre>
+```python
 m_progress
 m_total
 ```
@@ -77,7 +77,7 @@ which can be read by a progress callback to show a progressbar for example
 
 You can also specify how long the taks will take with an expected duration.
 
-<pre>
+```python
 class Add(CryptoTask):
     """ add two numbers but take a long time """
 
@@ -108,7 +108,7 @@ class Add(CryptoTask):
 
 Make an instance of the class and start it.
 
-<pre>
+```python
 dbase_name = "command_test"
 dbase = CouchDBServer(dbase_name)
 addc = Add(dbase)
@@ -120,19 +120,19 @@ This call immediatly returns.
 
 You can wait for completion with the join function which also takes a callback for progress monitoring.
 
-<pre>
+```python
         print "waiting for task completion"
         addc.join(progress_callback)
 ```
 
 results are ready
 
-<pre>
+```python
 print "result: "+addc.display() + " --> " + str(addc.m_result)
 ```
 
 and delete the command, commands are deleted after five minutes (if they are not running anymore)
 
-<pre>
+```python
 addc.delete()
 ```
