@@ -21,6 +21,7 @@ www.a8.nl
 
 """
 
+import threading
 from couchdb_api import CouchDBServer
 from __init__ import CryptoTask
 
@@ -68,16 +69,19 @@ class Add(CryptoTask):
         return get_private_key_cryptobox()
 
     def run(self, val1, val2):
-        """ run for three seconds, update duration during runtime to enable progress monitoring """
+        """ run for random seconds, update duration during runtime to enable progress monitoring """
+
+        import random
+        duration = random.randint(1, 3)
 
         self.load()
-        self.m_expected_duration = 3
+        self.m_expected_duration = duration
         self.save()
 
         # better import locally, not sure if worker has everythign
 
         import time
-        time.sleep(3)
+        time.sleep(duration)
         self = self
         return val1 + val2
 
@@ -101,7 +105,31 @@ class AddCrash(CryptoTask):
 def progress_callback(oid, progress, total):
     """ callback function for the join method """
 
-    print oid, "->", progress, "of", total
+    dbase_name = "command_test"
+    dbase = CouchDBServer(dbase_name)
+    command = CryptoTask(dbase, object_id=oid)
+    command.load()
+    print command.display(), "->", progress, "of", total
+
+class AddTest(threading.Thread):
+    """ run a test """
+
+    def __init__(self, cnt, result):
+        self.cnt = cnt
+        self.result = result
+        threading.Thread.__init__(self)
+
+    def run(self):
+        dbase_name = "command_test"
+        dbase = CouchDBServer(dbase_name)
+        addc = Add(dbase)
+        print "start: " + addc.display()
+        addc.start(self.cnt, 1)
+        print "waiting for task completion"
+        addc.join(progress_callback)
+        print "result: "+addc.display() + " --> " + str(addc.m_result)
+        self.result.append(str(addc.m_result))
+        addc.delete()
 
 
 def main():
@@ -115,29 +143,35 @@ def main():
         if task.m_done:
             print "result:", task.display() + " --> " + str(task.m_result)
             print "deleting: ", task.display()
-            task.delete()
-
-    task_list = []
-    for i in range(0, 10):
-        i = i
-        addc = Add(dbase)
-        print "start: " + addc.display()
-        addc.start(5, 4)
-        task_list.append(addc)
-
-        add_ex = AddCrash(dbase)
-        print "start: " + add_ex.display()
-        add_ex.start(5, 4)
-        task_list.append(add_ex)
-
-    print "waiting for task completion"
-    for task in task_list:
-        task.join(progress_callback)
-
-    for task in task_list:
-        print "result:", task.display() + " --> " + str(task.m_result)
         task.delete()
 
+    task_list = []
+    result_list = []
+    testitems = 100
+
+    for i in range(0, testitems):
+        addtest = AddTest(i, result_list)
+        addtest.start()
+        task_list.append(addtest)
+
+    for test in task_list:
+        test.join()
+
+    result_list = [int(i) for i in result_list]
+    result_list.sort()
+    for i in result_list:
+        print i
+
+    print
+    print "testok?", [i+1 for i in range(0, testitems)] == result_list
+    print
+
+    add_ex = AddCrash(dbase)
+    print "start: " + add_ex.display()
+    add_ex.start(5, 4)
+    add_ex.join()
+    print "exception test, succes is false", add_ex.m_success
+    add_ex.delete()
 
 if __name__ == "__main__":
     main()
