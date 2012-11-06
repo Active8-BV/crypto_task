@@ -111,12 +111,15 @@ def main():
     dbase = CouchDBServer(dbase_name)
 
     # delete all previous commands
-    for i in Add(dbase).collection():
-        print "deleting: ", i.display()
-        i.delete()
+    for task in Add(dbase).collection():
+        if task.m_done:
+            print "result:", task.display() + " --> " + str(task.m_result)
+            print "deleting: ", task.display()
+            task.delete()
 
     task_list = []
-    for i in range(0, 1):
+    for i in range(0, 10):
+        i = i
         addc = Add(dbase)
         print "start: " + addc.display()
         addc.start(5, 4)
@@ -132,7 +135,7 @@ def main():
         task.join(progress_callback)
 
     for task in task_list:
-        print "result:", task.display() + " --> " + task.m_result
+        print "result:", task.display() + " --> " + str(task.m_result)
         task.delete()
 
 
