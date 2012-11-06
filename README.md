@@ -66,11 +66,12 @@ class Add(CryptoTask):
         return val1 + val2
 ```
 
-The baseclass has to variables
+The baseclass has to variables, which can be updated in the run method.
 
 ```python
-m_progress
-m_total
+self.m_progress = 50
+self.m_total = 100
+
 ```
 
 which can be read by a progress callback to show a progressbar for example
@@ -121,8 +122,8 @@ This call immediatly returns.
 You can wait for completion with the join function which also takes a callback for progress monitoring.
 
 ```python
-        print "waiting for task completion"
-        addc.join(progress_callback)
+print "waiting for task completion"
+addc.join(progress_callback)
 ```
 
 results are ready
