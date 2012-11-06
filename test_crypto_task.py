@@ -26,7 +26,7 @@ from couchdb_api import CouchDBServer
 from __init__ import CryptoTask
 
 
-def get_private_key_cryptobox():
+def get_private_key():
     """ the private key of the queue worker """
 
     return """  -----BEGIN RSA PRIVATE KEY-----
@@ -66,7 +66,7 @@ class Add(CryptoTask):
     def get_private_key(self):
         """ required method, to encrypt and sign data """
 
-        return get_private_key_cryptobox()
+        return get_private_key()
 
     def run(self, val1, val2):
         """ run for random seconds, update duration during runtime to enable progress monitoring """
@@ -92,7 +92,7 @@ class AddCrash(CryptoTask):
     def get_private_key(self):
         """ required method, to encrypt and sign data """
 
-        return get_private_key_cryptobox()
+        return get_private_key()
 
     def run(self, val1, val2):
         """ divide by zero exception """
