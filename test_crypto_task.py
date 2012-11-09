@@ -1,10 +1,4 @@
-# pylint: disable-msg=C0103
-# pylint: enable-msg=C0103
-# tempfile regex format
-#
-#!/usr/bin/python
-# -*- coding: utf-8 -*-
-
+# coding=utf-8
 """
 
 Crypto task test program. Add some tasks to the database.
@@ -26,7 +20,7 @@ from couchdb_api import CouchDBServer
 from __init__ import CryptoTask
 
 
-def get_private_key():
+def _get_private_key():
     """ the private key of the queue worker """
 
     return """  -----BEGIN RSA PRIVATE KEY-----
@@ -66,23 +60,24 @@ class Add(CryptoTask):
     def get_private_key(self):
         """ required method, to encrypt and sign data """
 
-        return get_private_key()
+        return _get_private_key()
 
     def run(self, val1, val2):
         """ run for random seconds, update duration during runtime to enable progress monitoring """
 
         import random
+
         duration = random.randint(1, 3)
 
         self.load()
         self.m_expected_duration = duration
         self.save()
 
-        # better import locally, not sure if worker has everythign
+        # better import locally, not sure if worker has everything
 
         import time
+
         time.sleep(duration)
-        self = self
         return val1 + val2
 
 
@@ -92,12 +87,12 @@ class AddCrash(CryptoTask):
     def get_private_key(self):
         """ required method, to encrypt and sign data """
 
-        return get_private_key()
+        return _get_private_key()
 
+    #noinspection PyUnusedLocal
     def run(self, val1, val2):
         """ divide by zero exception """
 
-        self = self
         val1 = 5 / 0
         return val1 + val2
 
@@ -111,6 +106,7 @@ def progress_callback(oid, progress, total):
     command.load()
     print command.display(), "->", progress, "of", total
 
+
 class AddTest(threading.Thread):
     """ run a test """
 
@@ -120,6 +116,9 @@ class AddTest(threading.Thread):
         threading.Thread.__init__(self)
 
     def run(self):
+        """
+            run the test
+        """
         dbase_name = "command_test"
         dbase = CouchDBServer(dbase_name)
         addc = Add(dbase)
@@ -127,7 +126,7 @@ class AddTest(threading.Thread):
         addc.start(self.cnt, 1)
         print "waiting for task completion"
         addc.join(progress_callback)
-        print "result: "+addc.display() + " --> " + str(addc.m_result)
+        print "result: " + addc.display() + " --> " + str(addc.m_result)
         self.result.append(str(addc.m_result))
         addc.delete()
 
@@ -163,7 +162,7 @@ def main():
         print i
 
     print
-    print "testok?", [i+1 for i in range(0, testitems)] == result_list
+    print "testok?", [i + 1 for i in range(0, testitems)] == result_list
     print
 
     add_ex = AddCrash(dbase)

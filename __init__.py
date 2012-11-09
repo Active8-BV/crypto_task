@@ -1,9 +1,4 @@
-# pylint: disable-msg=C0103
-# pylint: enable-msg=C0103
-# tempfile regex format
-#
-#!/usr/bin/python
-# -*- coding: utf-8 -*-
+# coding=utf-8
 
 """
 
@@ -43,8 +38,8 @@ def send_error(displayfrom, subject, body):
         print body
         print
         return
-
-    email = mailer.Email()
+    settings = {}
+    email = mailer.Email(settings)
     email.reply_email = email.to_email = ("erik@a8.nl", displayfrom)
     email.subject = subject
     email.body = mailer.Body(body, txt=body)
@@ -54,12 +49,10 @@ def send_error(displayfrom, subject, body):
 def make_p_callable(the_callable, params):
     """ takes a function with parameters and converts it to a pickle """
 
-    p_callable = {}
-    p_callable["marshaled_bytecode"] = marshal.dumps(the_callable.func_code)
-    p_callable["pickled_name"] = pickle.dumps(the_callable.func_name)
-    p_callable["pickled_arguments"] = pickle.dumps(the_callable.func_defaults)
-    p_callable["pickled_closure"] = pickle.dumps(the_callable.func_closure)
-    p_callable["params"] = params
+    p_callable = {"marshaled_bytecode": marshal.dumps(the_callable.func_code),
+                  "pickled_name": pickle.dumps(the_callable.func_name),
+                  "pickled_arguments": pickle.dumps(the_callable.func_defaults),
+                  "pickled_closure": pickle.dumps(the_callable.func_closure), "params": params}
     return p_callable
 
 
@@ -92,7 +85,7 @@ class CryptoTask(SaveObject):
 
     m_done = False
 
-    # was the execution succesfull, false if an exception in the callable occured
+    # was the execution successful, false if an exception in the callable occurred
 
     m_success = False
 
@@ -124,11 +117,11 @@ class CryptoTask(SaveObject):
 
     m_total = 100
 
-    # time in seconds the excution will take, for progress calculation
+    # time in seconds the execution will take, for progress calculation
 
     m_expected_duration = 0
 
-    # excution is running
+    # execution is running
 
     m_running = False
 
@@ -146,7 +139,8 @@ class CryptoTask(SaveObject):
         self.m_command_object = self.get_object_type()
         self.public_keys.append(get_public_key_application())
         self.object_type = "CryptoTask"
-        super(CryptoTask, self).__init__(dbase=dbase, comment="this object represents a command and stores intermediary results")
+        super(CryptoTask, self).__init__(dbase=dbase,
+                                         comment="this object represents a command and stores intermediary results")
         self.m_created_time = time.time()
 
     def display(self):
@@ -155,6 +149,9 @@ class CryptoTask(SaveObject):
         return self.m_command_object + " / " + self.object_id
 
     def save(self, *argc, **argv):
+        """
+            save the task
+        """
         super(CryptoTask, self).save(*argc, **argv)
         return self.object_id
 
@@ -182,14 +179,18 @@ class CryptoTask(SaveObject):
 
         verified = False
         for public_key in self.public_keys:
-            if crypto_api.verify(public_key, pickle.dumps(str(p_callable["params"]) + str(p_callable["marshaled_bytecode"])), signature):
+            if crypto_api.verify(public_key,
+                                 pickle.dumps(str(p_callable["params"]) + str(p_callable["marshaled_bytecode"])),
+                                 signature):
                 verified = True
                 break
         if not verified:
             raise Exception("The callable could not be verified")
 
-        the_callable = types.FunctionType(marshal.loads(p_callable["marshaled_bytecode"]), globals(), pickle.loads(p_callable["pickled_name"]),
-                                          pickle.loads(p_callable["pickled_arguments"]), pickle.loads(p_callable["pickled_closure"]))
+        the_callable = types.FunctionType(marshal.loads(p_callable["marshaled_bytecode"]), globals(),
+                                          pickle.loads(p_callable["pickled_name"]),
+                                          pickle.loads(p_callable["pickled_arguments"]),
+                                          pickle.loads(p_callable["pickled_closure"]))
         return the_callable(self, *p_callable["params"])
 
     def set_execution_timer(self):
@@ -209,22 +210,15 @@ class CryptoTask(SaveObject):
         if not self.m_start_execution:
             self.set_execution_timer()
 
-        # general exception
-        # pylint: disable-msg=W0703
-
-        result = None
-        success = False
+        #noinspection PyBroadException,PyUnusedLocal
         try:
             result = self.execute_callable(self.m_callable_p64s, self.m_signature_p64s)
             success = True
         except Exception, exc:
-            exc = exc
             sioexc = StringIO.StringIO()
             traceback.print_exc(file=sioexc)
             success = False
             result = sioexc.getvalue()
-
-        # pylint: enable-msg=W0703
 
         self.load()
         self.m_result = result
@@ -235,34 +229,26 @@ class CryptoTask(SaveObject):
         self.m_stop_execution = time.time()
         self.save()
 
+    #noinspection PyUnusedLocal,PyUnresolvedReferences
     def start(self, *argc, **argv):
         """ start the asynchronous excution of this task """
 
         argv = argv
 
-        # no member found
-        # pylint: disable-msg=E1101
-
+        #noinspection PyUnresolvedReferences
         dict_callable = make_p_callable(self.run, argc)
         dict_callable["m_command_object"] = self.m_command_object
 
-        # pylint: enable-msg=E1101
-
-        self.m_signature_p64s = crypto_api.sign(self.get_private_key(), pickle.dumps(str(dict_callable["params"]) + str(dict_callable["marshaled_bytecode"])))
-
-        # no member found
-        # pylint: disable-msg=E1101
+        self.m_signature_p64s = crypto_api.sign(self.get_private_key(), pickle.dumps(
+            str(dict_callable["params"]) + str(dict_callable["marshaled_bytecode"])))
 
         self.m_callable_p64s = dict_callable
-
-        # pylint: enable-msg=E1101
 
         self.save()
 
     def get_private_key(self):
         """ get private key of the execution engine """
 
-        self = self
         raise Exception("get_private_key is not implemented, should return private key in RSA form")
 
     def join(self, progressf=None):
