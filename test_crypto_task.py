@@ -135,7 +135,7 @@ def main():
     """ open couchdb and add commands, wait for completion """
 
     dbase_name = "command_test"
-    dbase = CouchDBServer(dbase_name)
+    dbase = CouchDBServer(dbase_name, create_db=True)
 
     # delete all previous commands
     for task in Add(dbase).collection():
