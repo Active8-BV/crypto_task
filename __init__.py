@@ -39,7 +39,7 @@ def send_error(displayfrom, subject, body):
         print
         return
     settings = {}
-    email = mailer.Email(settings)
+    email = mailer.Email(setting)
     email.reply_email = email.to_email = ("erik@a8.nl", displayfrom)
     email.subject = subject
     email.body = mailer.Body(body, txt=body)
