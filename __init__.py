@@ -28,7 +28,11 @@ from couchdb_api import SaveObject
 
 
 def send_error(displayfrom, subject, body):
-    """ send email error report to administrator """
+    """ send email error report to administrator
+    @param displayfrom:
+    @param subject:
+    @param body:
+    """
 
     debug = True
     if debug:
@@ -39,7 +43,7 @@ def send_error(displayfrom, subject, body):
         print
         return
     settings = {}
-    email = mailer.Email(setting)
+    email = mailer.Email(settings)
     email.reply_email = email.to_email = ("erik@a8.nl", displayfrom)
     email.subject = subject
     email.body = mailer.Body(body, txt=body)
@@ -47,7 +51,10 @@ def send_error(displayfrom, subject, body):
 
 
 def make_p_callable(the_callable, params):
-    """ takes a function with parameters and converts it to a pickle """
+    """ takes a function with parameters and converts it to a pickle
+    @param the_callable:
+    @param params:
+    """
 
     p_callable = {"marshaled_bytecode": marshal.dumps(the_callable.func_code),
                   "pickled_name": pickle.dumps(the_callable.func_name),
@@ -151,6 +158,10 @@ class CryptoTask(SaveObject):
     def save(self, *argc, **argv):
         """
             save the task
+        @param argc:
+        @param *argc:
+        @param argv:
+        @param **argv: 
         """
         super(CryptoTask, self).save(*argc, **argv)
         return self.object_id
@@ -175,7 +186,10 @@ class CryptoTask(SaveObject):
         return time.time() - self.m_created_time
 
     def execute_callable(self, p_callable, signature):
-        """ verify the callable, unpack, and call """
+        """ verify the callable, unpack, and call
+        @param p_callable:
+        @param signature:
+        """
 
         verified = False
         for public_key in self.public_keys:
@@ -231,7 +245,12 @@ class CryptoTask(SaveObject):
 
     #noinspection PyUnusedLocal,PyUnresolvedReferences
     def start(self, *argc, **argv):
-        """ start the asynchronous excution of this task """
+        """ start the asynchronous excution of this task
+        @param *argc:
+        @param **argv:
+        @param argc:
+        @param argv:
+        """
 
         argv = argv
 
@@ -252,7 +271,9 @@ class CryptoTask(SaveObject):
         raise Exception("get_private_key is not implemented, should return private key in RSA form")
 
     def join(self, progressf=None):
-        """ wait for completion of this task """
+        """ wait for completion of this task
+        @param progressf:
+        """
 
         if not self._dbase:
             raise Exception("No valid database avila")

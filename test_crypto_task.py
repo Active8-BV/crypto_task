@@ -16,7 +16,7 @@ www.a8.nl
 """
 
 import threading
-from couchdb_api import CouchDBServer
+from couchdb_api import CouchDBServer, CouchNamedCluster
 from __init__ import CryptoTask
 
 
@@ -63,7 +63,10 @@ class Add(CryptoTask):
         return _get_private_key()
 
     def run(self, val1, val2):
-        """ run for random seconds, update duration during runtime to enable progress monitoring """
+        """ run for random seconds, update duration during runtime to enable progress monitoring
+        @param val1:
+        @param val2:
+        """
 
         import random
 
@@ -91,17 +94,25 @@ class AddCrash(CryptoTask):
 
     #noinspection PyUnusedLocal
     def run(self, val1, val2):
-        """ divide by zero exception """
+        """ divide by zero exception
+        @param val1:
+        @param val2:
+        """
 
         val1 = 5 / 0
         return val1 + val2
 
 
 def progress_callback(oid, progress, total):
-    """ callback function for the join method """
+    """ callback function for the join method
+    @param oid:
+    @param progress:
+    @param total:
+    """
 
     dbase_name = "command_test"
-    dbase = CouchDBServer(dbase_name)
+    named_cluster = CouchNamedCluster(dbase_name, ["http://127.0.0.1:5984/"])
+    dbase = CouchDBServer(named_cluster)
     command = CryptoTask(dbase, object_id=oid)
     command.load()
     print command.display(), "->", progress, "of", total
@@ -120,7 +131,8 @@ class AddTest(threading.Thread):
             run the test
         """
         dbase_name = "command_test"
-        dbase = CouchDBServer(dbase_name)
+        named_cluster = CouchNamedCluster(dbase_name, ["http://127.0.0.1:5984/"])
+        dbase = CouchDBServer(named_cluster)
         addc = Add(dbase)
         print "start: " + addc.display()
         addc.start(self.cnt, 1)
@@ -135,7 +147,8 @@ def main():
     """ open couchdb and add commands, wait for completion """
 
     dbase_name = "command_test"
-    dbase = CouchDBServer(dbase_name, create_db=True)
+    named_cluster = CouchNamedCluster(dbase_name, ["http://127.0.0.1:5984/"])
+    dbase = CouchDBServer(named_cluster, create_db=True)
 
     # delete all previous commands
     for task in Add(dbase).collection():
