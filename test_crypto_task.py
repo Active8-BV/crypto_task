@@ -159,7 +159,7 @@ def main():
 
     task_list = []
     result_list = []
-    testitems = 100
+    testitems = 3
 
     for i in range(0, testitems):
         addtest = AddTest(i, result_list)
