@@ -141,13 +141,13 @@ class CryptoTask(SaveObject):
     public_keys = []
 
     def __init__(self, dbase=None, object_id=None):
-        if object_id:
-            self.object_id = object_id
+        super(CryptoTask, self).__init__(dbase=dbase,
+                                         comment="this object represents a command and stores intermediary results",
+                                         object_id=object_id)
+
         self.m_command_object = self.get_object_type()
         self.public_keys.append(get_public_key_application())
         self.object_type = "CryptoTask"
-        super(CryptoTask, self).__init__(dbase=dbase,
-                                         comment="this object represents a command and stores intermediary results")
         self.m_created_time = time.time()
 
     def display(self):

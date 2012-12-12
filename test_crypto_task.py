@@ -16,6 +16,7 @@ www.a8.nl
 """
 
 import threading
+import xmlrpclib
 from couchdb_api import CouchDBServer, CouchNamedCluster
 from __init__ import CryptoTask
 
@@ -147,8 +148,12 @@ def main():
     """ open couchdb and add commands, wait for completion """
 
     dbase_name = "command_test"
-    named_cluster = CouchNamedCluster(dbase_name, ["http://127.0.0.1:5984/"])
-    dbase = CouchDBServer(named_cluster, create_db=True)
+    cluster = ["http://127.0.0.1:5984/"]
+    named_cluster = CouchNamedCluster(dbase_name, cluster)
+    dbase = CouchDBServer()
+    dbase.create(named_cluster)
+
+    server = xmlrpclib.ServerProxy('http://localhost:8001')
 
     # delete all previous commands
     for task in Add(dbase).collection():
@@ -159,12 +164,14 @@ def main():
 
     task_list = []
     result_list = []
-    testitems = 3
+    testitems = 2
 
     for i in range(0, testitems):
         addtest = AddTest(i, result_list)
         addtest.start()
         task_list.append(addtest)
+
+    server.process_tasks(dbase_name, cluster)
 
     for test in task_list:
         test.join()
@@ -181,7 +188,9 @@ def main():
     add_ex = AddCrash(dbase)
     print "start: " + add_ex.display()
     add_ex.start(5, 4)
+    server.process_tasks(dbase_name, cluster)
     add_ex.join()
+
     print "exception test, succes is false", add_ex.m_success
     add_ex.delete()
 
