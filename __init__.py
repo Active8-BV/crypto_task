@@ -62,21 +62,6 @@ def make_p_callable(the_callable, params):
                   "pickled_closure": pickle.dumps(the_callable.func_closure), "params": params}
     return p_callable
 
-
-def get_public_key_application():
-    """ the public key of the application, the queue worker has the private key """
-
-    return """  -----BEGIN PUBLIC KEY-----
-                MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAuPUGtdCh4bYHVb+mTnZ+
-                GIo8h2Yl8NmlW08QjKs0Y5XDnI99tYenjFilXUJNquqJN3TvGxv4jgJOcZZQ4hSF
-                Y2s49iB6PxDsF48j5BCFPkKwSpriqsK0ZIuhpM71hb5JgSMDnJ/UQmwnA+sGsIaA
-                JRR7UNfa6lmKf7Ld54o/H62UYypImsSLB0SEC4apm9Camg+vz9r8EOONdGZJznYW
-                4RltCVw3223jC1KPxK/EpMVs8kXg1TPpeWqVwYZvMcyiF+NfquHxCqVtZNEufb30
-                yOq4DPS4lqYRO6sXVFSAdV4ilyn6k/ju95yklW3odPRBVGrp66bgFUQ7+1EGzNf/
-                EQIDAQAB
-                -----END PUBLIC KEY-----""".strip()
-
-
 class CryptoTask(SaveObject):
     """ async execution, where the function 'run' is securely saved in couchdb. """
 
@@ -140,15 +125,19 @@ class CryptoTask(SaveObject):
 
     public_keys = []
 
-    def __init__(self, dbase=None, object_id=None):
+    # id of the user to which the task belongs
+
+    m_crypto_user_object_id = None
+
+    def __init__(self, dbase, object_id=None, crypto_user_object_id=None):
         super(CryptoTask, self).__init__(dbase=dbase,
                                          comment="this object represents a command and stores intermediary results",
                                          object_id=object_id)
 
         self.m_command_object = self.get_object_type()
-        self.public_keys.append(get_public_key_application())
         self.object_type = "CryptoTask"
         self.m_created_time = time.time()
+        self.m_crypto_user_object_id = crypto_user_object_id
 
     def display(self):
         """ display string """
@@ -185,26 +174,16 @@ class CryptoTask(SaveObject):
 
         return time.time() - self.m_created_time
 
-    def execute_callable(self, p_callable, signature):
+    def execute_callable(self, p_callable):
         """ verify the callable, unpack, and call
         @param p_callable:
-        @param signature:
         """
-
-        verified = False
-        for public_key in self.public_keys:
-            if crypto_api.verify(public_key,
-                                 pickle.dumps(str(p_callable["params"]) + str(p_callable["marshaled_bytecode"])),
-                                 signature):
-                verified = True
-                break
-        if not verified:
-            raise Exception("The callable could not be verified")
 
         the_callable = types.FunctionType(marshal.loads(p_callable["marshaled_bytecode"]), globals(),
                                           pickle.loads(p_callable["pickled_name"]),
                                           pickle.loads(p_callable["pickled_arguments"]),
                                           pickle.loads(p_callable["pickled_closure"]))
+
         return the_callable(self, *p_callable["params"])
 
     def set_execution_timer(self):
@@ -226,7 +205,7 @@ class CryptoTask(SaveObject):
 
         #noinspection PyBroadException,PyUnusedLocal
         try:
-            result = self.execute_callable(self.m_callable_p64s, self.m_signature_p64s)
+            result = self.execute_callable(self.m_callable_p64s)
             success = True
         except Exception, exc:
             sioexc = StringIO.StringIO()
@@ -251,24 +230,18 @@ class CryptoTask(SaveObject):
         @param argc:
         @param argv:
         """
-
         argv = argv
+
+        if not self.m_crypto_user_object_id:
+            raise Exception("CryptoTask:start -> no crypto_user_object_id given")
 
         #noinspection PyUnresolvedReferences
         dict_callable = make_p_callable(self.run, argc)
         dict_callable["m_command_object"] = self.m_command_object
 
-        self.m_signature_p64s = crypto_api.sign(self.get_private_key(), pickle.dumps(
-            str(dict_callable["params"]) + str(dict_callable["marshaled_bytecode"])))
-
         self.m_callable_p64s = dict_callable
 
         self.save()
-
-    def get_private_key(self):
-        """ get private key of the execution engine """
-
-        raise Exception("get_private_key is not implemented, should return private key in RSA form")
 
     def join(self, progressf=None):
         """ wait for completion of this task
