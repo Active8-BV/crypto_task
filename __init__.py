@@ -129,6 +129,14 @@ class CryptoTask(SaveObject):
 
     m_crypto_user_object_id = None
 
+    # data to operate on
+
+    m_process_data = None
+
+    # delete the task when completed
+
+    m_delete_me_when_done = True
+
     def __init__(self, dbase, object_id=None, crypto_user_object_id=None):
         super(CryptoTask, self).__init__(dbase=dbase,
                                          comment="this object represents a command and stores intermediary results",
@@ -152,6 +160,7 @@ class CryptoTask(SaveObject):
         @param argv:
         @param **argv: 
         """
+
         super(CryptoTask, self).save(*argc, **argv)
         return self.object_id
 
@@ -221,6 +230,8 @@ class CryptoTask(SaveObject):
         self.m_done = True
         self.m_stop_execution = time.time()
         self.save()
+        if self.m_delete_me_when_done:
+            self.delete()
 
     #noinspection PyUnusedLocal,PyUnresolvedReferences
     def start(self, *argc, **argv):
