@@ -27,6 +27,16 @@ import StringIO
 from couchdb_api import SaveObject
 
 
+def assertvar(obj, var):
+    if var not in obj:
+        raise Exception("cannot find " + str(var))
+    val = obj[var]
+    if not val:
+        raise Exception(str(var) + " is null")
+    if val is "":
+        raise Exception(str(var) + " is """)
+
+
 def send_error(displayfrom, subject, body):
     """ send email error report to administrator
     @param displayfrom:
