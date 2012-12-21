@@ -131,7 +131,7 @@ class CryptoTask(SaveObject):
 
     # data to operate on
 
-    m_process_data = None
+    m_process_data_p64s = None
 
     # delete the task when completed
 
@@ -152,7 +152,7 @@ class CryptoTask(SaveObject):
 
         return self.m_command_object + " / " + self.object_id
 
-    def save(self, *argc, **argv):
+    #def save(self, *argc, **argv):
         """
             save the task
         @param argc:
@@ -161,8 +161,8 @@ class CryptoTask(SaveObject):
         @param **argv: 
         """
 
-        super(CryptoTask, self).save(*argc, **argv)
-        return self.object_id
+    #    super(CryptoTask, self).save(*argc, **argv)
+    #    return self.object_id
 
     def total_execution_time(self):
         """ calculate total time """
