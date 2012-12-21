@@ -138,14 +138,15 @@ class CryptoTask(SaveObject):
     m_delete_me_when_done = True
 
     def __init__(self, dbase, object_id=None, crypto_user_object_id=None):
+        self.object_type = "CryptoTask"
         super(CryptoTask, self).__init__(dbase=dbase,
                                          comment="this object represents a command and stores intermediary results",
                                          object_id=object_id)
 
         self.m_command_object = self.get_object_type()
-        self.object_type = "CryptoTask"
         self.m_created_time = time.time()
         self.m_crypto_user_object_id = crypto_user_object_id
+        self.m_delete_me_when_done = True
 
     def display(self):
         """ display string """
@@ -230,8 +231,6 @@ class CryptoTask(SaveObject):
         self.m_done = True
         self.m_stop_execution = time.time()
         self.save()
-        if self.m_delete_me_when_done:
-            self.delete()
 
     #noinspection PyUnusedLocal,PyUnresolvedReferences
     def start(self, *argc, **argv):
