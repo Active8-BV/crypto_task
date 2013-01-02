@@ -104,21 +104,6 @@ class AddCrash(CryptoTask):
         return val1 + val2
 
 
-def progress_callback(oid, progress, total):
-    """ callback function for the join method
-    @param oid:
-    @param progress:
-    @param total:
-    """
-
-    dbase_name = "command_test"
-    named_cluster = CouchNamedCluster(dbase_name, ["http://127.0.0.1:5984/"])
-    dbase = CouchDBServer(named_cluster)
-    command = CryptoTask(dbase, object_id=oid)
-    command.load()
-    print command.display(), "->", progress, "of", total
-
-
 class AddTest(threading.Thread):
     """ run a test """
 
@@ -138,7 +123,7 @@ class AddTest(threading.Thread):
         print "start: " + addc.display()
         addc.start(self.cnt, 1)
         print "waiting for task completion"
-        addc.join(progress_callback)
+        addc.join()
         print "result: " + addc.display() + " --> " + str(addc.m_result)
         self.result.append(str(addc.m_result))
         addc.delete()
