@@ -45,13 +45,6 @@ def main():
 
     server = xmlrpclib.ServerProxy('http://localhost:8001')
 
-    # delete all previous commands
-    for task in Add(dbase).collection():
-        if task.m_done:
-            print "result:", task.display() + " --> " + str(task.m_result)
-            print "deleting: ", task.display()
-        task.delete()
-
     task = Add(dbase, 1)
     task.start(1, 2)
 
