@@ -239,7 +239,7 @@ class CryptoTask(SaveObject):
         self.m_callable_p64s = None
         self.m_done = True
         self.m_stop_execution = time.time()
-        self.save(lock=lock)
+        self.save()
 
     #noinspection PyUnusedLocal,PyUnresolvedReferences
     def start(self, *argc, **argv):
