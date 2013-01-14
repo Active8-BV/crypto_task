@@ -26,7 +26,7 @@ import uuid
 import mailer
 import traceback
 import StringIO
-from couchdb_api import SaveObject
+from couchdb_api import SaveObject, handle_exception
 
 
 def assertvar(obj, var):
@@ -227,10 +227,11 @@ class CryptoTask(SaveObject):
             result = self.execute_callable(self.m_callable_p64s)
             success = True
         except Exception, exc:
-            sioexc = StringIO.StringIO()
-            traceback.print_exc(file=sioexc)
+            #sioexc = StringIO.StringIO()
+            #traceback.print_exc(file=sioexc)
             success = False
-            result = sioexc.getvalue()
+            #result = sioexc.getvalue()
+            result = handle_exception(exc, False, False)
 
         self.load()
         self.m_result = result
