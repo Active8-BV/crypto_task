@@ -24,8 +24,6 @@ import crypto_api
 import inflection
 import uuid
 import mailer
-import traceback
-import StringIO
 from couchdb_api import SaveObject, handle_exception
 
 
@@ -231,7 +229,7 @@ class CryptoTask(SaveObject):
             #traceback.print_exc(file=sioexc)
             success = False
             #result = sioexc.getvalue()
-            result = handle_exception(exc, False, False)
+            result = handle_exception(exc, False, True)
 
         self.load()
         self.m_result = result
