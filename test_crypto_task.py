@@ -31,7 +31,7 @@ class Add(CryptoTask):
         def add(a, b):
             return a + b
 
-        return self.run_critical_section(add, val1, val2)
+        return add(val1, val2)
 
 
 def main():

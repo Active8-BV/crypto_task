@@ -77,9 +77,6 @@ class CryptoTask(SaveObject):
     def __init__(self, dbase, crypto_user_object_id=None):
         """ async execution, where the function 'run' is securely saved in couchdb. """
 
-        # optional locking object
-        self.lock = None
-
         # the pickled executable
         self.m_callable_p64s = None
 
@@ -190,25 +187,7 @@ class CryptoTask(SaveObject):
         self.m_running = True
         self.save()
 
-    def enter_critical_section(self):
-        if self.lock:
-            self.lock.acquire()
-
-    def leave_critival_section(self):
-        if self.lock:
-            self.lock.release()
-
-    def run_critical_section(self, func, *args):
-        self.enter_critical_section()
-        try:
-            result = func(*args)
-            self.leave_critival_section()
-            return result
-        except Exception, e:
-            self.leave_critival_section()
-            raise e
-
-    def execute(self, lock=None):
+    def execute(self):
         """ set up structures and execute """
 
         if self.m_done:
@@ -217,8 +196,6 @@ class CryptoTask(SaveObject):
             raise Exception("There is no callable saved in this object")
         if not self.m_start_execution:
             self.set_execution_timer()
-        if lock:
-            self.lock = lock
 
         #noinspection PyBroadException,PyUnusedLocal
         try:
