@@ -144,6 +144,8 @@ class CryptoTask(SaveObject):
                                 comment="this object represents a command and stores intermediary results",
                                 object_id=object_id)
 
+        self.object_type = "CryptoTask"
+
     def display(self):
         """ display string """
 
