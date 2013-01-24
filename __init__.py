@@ -20,9 +20,9 @@ import time
 import marshal
 import types
 import pickle
-import crypto_api
-import inflection
 import uuid
+import inflection
+import crypto_api
 import mailer
 from couchdb_api import SaveObject, handle_exception
 
@@ -35,6 +35,11 @@ def assertvar(obj, var):
         raise Exception(str(var) + " is null")
     if val is "":
         raise Exception(str(var) + " is """)
+
+
+def get_assertvar(obj, var):
+    assertvar(obj, var)
+    return obj[var]
 
 
 def send_error(displayfrom, subject, body):
@@ -141,8 +146,8 @@ class CryptoTask(SaveObject):
         object_id = inflection.underscore(self.object_type) + "_" + str(uuid.uuid4().hex)
 
         super(CryptoTask, self).__init__(dbase=dbase,
-                                comment="this object represents a command and stores intermediary results",
-                                object_id=object_id)
+                                         comment="this object represents a command and stores intermediary results",
+                                         object_id=object_id)
 
         self.object_type = "CryptoTask"
 
