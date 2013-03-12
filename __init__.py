@@ -49,18 +49,22 @@ def send_error(displayfrom, subject, body):
     @param body:
     """
 
-    debug = True
-    if debug:
-        print "== send error =="
-        print subject
-        print
-        print body
-        print
-        #return
-    settings = {}
+    class Settings(object):
+        email_from_email = ""
+        email_from = ""
+
+    settings = Settings()
+    settings.email_from_email = "erik@a8.nl"
+    settings.email_from = displayfrom
+    settings.email_host = "mail.active8.nl"
+
+    settings.email_host_password = "48fi0b"
+    settings.email_host_user = "erik@active8.nl"
+
     email = mailer.Email(settings)
     email.reply_email = email.to_email = ("erik@a8.nl", displayfrom)
     email.subject = subject
+    email.email_from = displayfrom
     email.body = mailer.Body(body, txt=body)
     email.send()
 
