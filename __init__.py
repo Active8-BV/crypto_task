@@ -56,7 +56,7 @@ def send_error(displayfrom, subject, body):
         print
         print body
         print
-        return
+        #return
     settings = {}
     email = mailer.Email(settings)
     email.reply_email = email.to_email = ("erik@a8.nl", displayfrom)

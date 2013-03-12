@@ -17,7 +17,7 @@ www.a8.nl
 
 import xmlrpclib
 from couchdb_api import CouchDBServer, CouchNamedCluster
-from __init__ import CryptoTask
+from __init__ import CryptoTask, send_error
 
 class Add(CryptoTask):
     """ add two numbers but take a long time """
@@ -51,4 +51,5 @@ def main():
     server.process_tasks(dbase_name, cluster)
 
 if __name__ == "__main__":
-    main()
+    send_error("error", "een error", "hello world")
+    #main()
