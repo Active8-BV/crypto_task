@@ -62,9 +62,10 @@ def send_error(displayfrom, subject, body):
     settings.email_host_user = "erik@active8.nl"
 
     email = mailer.Email(settings)
-    email.reply_email = email.to_email = ("erik@a8.nl", displayfrom)
+    #email.reply_email = ("erik@a8.nl", displayfrom)
+    email.to_email = ("erik@active8.nl", "recipient")
     email.subject = subject
-    email.email_from = displayfrom
+    #email.email_from = displayfrom
     email.body = mailer.Body(body, txt=body)
     email.send()
 
