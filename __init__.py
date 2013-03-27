@@ -27,27 +27,15 @@ import mailer
 from couchdb_api import SaveObject, handle_exception
 
 
-def assertvar(obj, var):
-    if var not in obj:
-        raise Exception("cannot find " + str(var))
-    val = obj[var]
-    if not val:
-        raise Exception(str(var) + " is null")
-    if val is "":
-        raise Exception(str(var) + " is """)
-
-
-def get_assertvar(obj, var):
-    assertvar(obj, var)
-    return obj[var]
-
-
 def send_error(displayfrom, subject, body):
     """ send email error report to administrator
     @param displayfrom:
     @param subject:
     @param body:
     """
+    import os
+    if "myra" in os.popen("hostname").read():
+        return
 
     class Settings(object):
         email_from_email = ""
@@ -184,7 +172,6 @@ class CryptoTask(SaveObject):
         """ verify the callable, unpack, and call
         @param p_callable:
         """
-
         the_callable = types.FunctionType(marshal.loads(p_callable["marshaled_bytecode"]), globals(),
                                           pickle.loads(p_callable["pickled_name"]),
                                           pickle.loads(p_callable["pickled_arguments"]),
