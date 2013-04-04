@@ -24,7 +24,7 @@ import uuid
 import inflection
 import crypto_api
 import mailer
-from couchdb_api import SaveObject, handle_exception
+from couchdb_api import SaveObject, handle_exception, console
 
 
 def send_error(displayfrom, subject, body):
@@ -172,6 +172,7 @@ class CryptoTask(SaveObject):
         """ verify the callable, unpack, and call
         @param p_callable:
         """
+
         the_callable = types.FunctionType(marshal.loads(p_callable["marshaled_bytecode"]), globals(),
                                           pickle.loads(p_callable["pickled_name"]),
                                           pickle.loads(p_callable["pickled_arguments"]),
@@ -197,6 +198,7 @@ class CryptoTask(SaveObject):
             self.set_execution_timer()
 
         #noinspection PyBroadException,PyUnusedLocal
+        console("execute:", self.m_command_object)
         try:
             result = self.execute_callable(self.m_callable_p64s)
             success = True
