@@ -24,7 +24,7 @@ import uuid
 import inflection
 import crypto_api
 import mailer
-from couchdb_api import SaveObject, handle_exception, console
+from couchdb_api import SaveObject, handle_exception, console, console_warning
 
 
 def send_error(displayfrom, subject, body):
@@ -35,6 +35,7 @@ def send_error(displayfrom, subject, body):
     """
     import os
     if "myra" in os.popen("hostname").read():
+        console_warning("send_error", subject, body)
         return
 
     class Settings(object):
