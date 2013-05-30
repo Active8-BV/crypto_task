@@ -10,9 +10,7 @@ Works in conjunction with https://github.com/erikdejonge/crypto_taskworker
 License
 ===========
 <pre>
-This source code is licensed under the GNU General Public License,
-Version 3. http://www.gnu.org/licenses/gpl-3.0.en.html
-
+This source code is property of Active8 BV
 Copyright (C)
 
 Erik de Jonge <erik@a8.nl>
