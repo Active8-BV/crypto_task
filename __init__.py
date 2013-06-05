@@ -15,7 +15,9 @@ www.a8.nl
 """
 
 import time
+import socket
 import marshal
+import xmlrpclib
 import types
 import pickle
 import uuid
@@ -197,7 +199,7 @@ class CryptoTask(SaveObject):
             self.set_execution_timer()
 
         #noinspection PyBroadException,PyUnusedLocal
-        console("execute:", self.m_command_object)
+        console("execute:", self.object_id)
         try:
             result = self.execute_callable(self.m_callable_p64s)
             success = True
@@ -256,3 +258,10 @@ class CryptoTask(SaveObject):
                         last_progress = self.m_progress
             time.sleep(0.5)
         return
+
+    def notify_worker(self, task_server):
+        try:
+            server = xmlrpclib.ServerProxy(task_server)
+            server.process_tasks(self.get_db().get_db_name(), self.get_db().get_db_servers())
+        except socket.error:
+            console_warning("notify_worker, couldn't access task server")
