@@ -15,9 +15,9 @@ www.a8.nl
 """
 
 import time
-import socket
 import marshal
 import Pyro4
+import Pyro4.errors
 import types
 import pickle
 import uuid
@@ -266,5 +266,5 @@ class CryptoTask(SaveObject):
         try:
             server = Pyro4.Proxy("PYRO:pyro_methods_cryptobox@"+taskserver)
             server.process_tasks(self.get_db().get_db_name(), self.get_db().get_db_servers())
-        except socket.error:
+        except Pyro4.errors.CommunicationError:
             console_warning("notify_worker, couldn't access task server")
