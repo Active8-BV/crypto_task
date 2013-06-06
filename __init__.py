@@ -17,15 +17,17 @@ www.a8.nl
 import time
 import socket
 import marshal
-import xmlrpclib
+import Pyro4
 import types
 import pickle
 import uuid
 import inflection
 import crypto_api
 import mailer
+from Crypto import Random
 from couchdb_api import SaveObject, handle_exception, console, console_warning
 
+Pyro4.config.HMAC_KEY = "sdhjfghvgchjgfuyeaguy"
 
 def send_error(displayfrom, subject, body):
     """ send email error report to administrator
@@ -200,6 +202,7 @@ class CryptoTask(SaveObject):
 
         #noinspection PyBroadException,PyUnusedLocal
         console("execute:", self.object_id)
+        Random.atfork()
         try:
             result = self.execute_callable(self.m_callable_p64s)
             success = True
@@ -259,9 +262,9 @@ class CryptoTask(SaveObject):
             time.sleep(0.5)
         return
 
-    def notify_worker(self, task_server):
+    def notify_worker(self, taskserver):
         try:
-            server = xmlrpclib.ServerProxy(task_server)
+            server = Pyro4.Proxy("PYRO:pyro_methods_cryptobox@"+taskserver)
             server.process_tasks(self.get_db().get_db_name(), self.get_db().get_db_servers())
         except socket.error:
             console_warning("notify_worker, couldn't access task server")
