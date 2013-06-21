@@ -16,18 +16,22 @@ www.a8.nl
 
 import time
 import marshal
-import Pyro4
-import Pyro4.errors
 import types
 import pickle
 import uuid
+
+import Pyro4
+import Pyro4.errors
 import inflection
+from Crypto import Random
+
 import crypto_api
 import mailer
-from Crypto import Random
 from couchdb_api import SaveObject, handle_exception, console, console_warning
 
+
 Pyro4.config.HMAC_KEY = "sdhjfghvgchjgfuyeaguy"
+
 
 def send_error(displayfrom, subject, body):
     """ send email error report to administrator
@@ -175,13 +179,15 @@ class CryptoTask(SaveObject):
         """ verify the callable, unpack, and call
         @param p_callable:
         """
+        try:
+            the_callable = types.FunctionType(marshal.loads(p_callable["marshaled_bytecode"]), globals(),
+                                              pickle.loads(p_callable["pickled_name"]),
+                                              pickle.loads(p_callable["pickled_arguments"]),
+                                              pickle.loads(p_callable["pickled_closure"]))
 
-        the_callable = types.FunctionType(marshal.loads(p_callable["marshaled_bytecode"]), globals(),
-                                          pickle.loads(p_callable["pickled_name"]),
-                                          pickle.loads(p_callable["pickled_arguments"]),
-                                          pickle.loads(p_callable["pickled_closure"]))
-
-        return the_callable(self, *p_callable["params"])
+            return the_callable(self, *p_callable["params"])
+        except Exception, ex:
+            handle_exception(ex, True, False)
 
     def set_execution_timer(self):
         """ start the timer """
@@ -211,7 +217,7 @@ class CryptoTask(SaveObject):
             #traceback.print_exc(file=sioexc)
             success = False
             #result = sioexc.getvalue()
-            result = handle_exception(exc, False, True)
+            result = handle_exception(exc, return_error=True, raise_again=False)
 
         self.load()
         self.m_result = result
@@ -264,7 +270,7 @@ class CryptoTask(SaveObject):
 
     def notify_worker(self, taskserver, wait=False):
         try:
-            server = Pyro4.Proxy("PYRO:pyro_methods_cryptobox@"+taskserver)
+            server = Pyro4.Proxy("PYRO:pyro_methods_cryptobox@" + taskserver)
             server.process_tasks(self.get_db().get_db_name(), self.get_db().get_db_servers(), wait=wait)
         except Pyro4.errors.CommunicationError:
             console_warning("notify_worker, couldn't access task server")
