@@ -180,6 +180,9 @@ class CryptoTask(SaveObject):
         @param p_callable:
         """
         try:
+            if not isinstance(p_callable, dict):
+                return False
+
             the_callable = types.FunctionType(marshal.loads(p_callable["marshaled_bytecode"]), globals(),
                                               pickle.loads(p_callable["pickled_name"]),
                                               pickle.loads(p_callable["pickled_arguments"]),
