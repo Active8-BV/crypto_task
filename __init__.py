@@ -39,7 +39,6 @@ def send_error(displayfrom, subject, body):
     @param subject:
     @param body:
     """
-    import os
     if "myra" in subprocess.check_output("hostname"):
         console_warning("send_error", subject, body)
         return
