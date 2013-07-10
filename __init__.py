@@ -19,7 +19,7 @@ import marshal
 import types
 import pickle
 import uuid
-
+import subprocess
 import Pyro4
 import Pyro4.errors
 import inflection
@@ -40,7 +40,7 @@ def send_error(displayfrom, subject, body):
     @param body:
     """
     import os
-    if "myra" in os.popen("hostname").read():
+    if "myra" in subprocess.check_output("hostname"):
         console_warning("send_error", subject, body)
         return
 
@@ -257,7 +257,7 @@ class CryptoTask(SaveObject):
         @param progressf:
         """
 
-        if not self._dbase:
+        if not self.dbase:
             raise Exception("No valid database avila")
         last_progress = 0
         while self.load():
