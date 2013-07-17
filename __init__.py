@@ -27,8 +27,11 @@ Pyro4.config.HMAC_KEY = "sdhjfghvgchjgfuyeaguy"
 def send_error(displayfrom, subject, body):
     """ send email error report to administrator
     @param displayfrom:
+    @type displayfrom: 
     @param subject:
+    @type subject: 
     @param body:
+    @type body: 
     """
     if "myra" in subprocess.check_output("hostname"):
         console_warning("send_error", subject, body)
@@ -56,7 +59,9 @@ def send_error(displayfrom, subject, body):
 def make_p_callable(the_callable, params):
     """ takes a function with parameters and converts it to a pickle
     @param the_callable:
+    @type the_callable: 
     @param params:
+    @type params: 
     """
     p_callable = {"marshaled_bytecode": marshal.dumps(the_callable.func_code),
                   "pickled_name": pickle.dumps(the_callable.func_name),
@@ -71,6 +76,12 @@ class RunError(Exception):
 
 
 class CryptoTask(SaveObject):
+    """
+    @param dbase:
+    @type dbase:
+    @param crypto_user_object_id:
+    @type crypto_user_object_id:
+    """
 
     def __init__(self, dbase, crypto_user_object_id=None):
         """ async execution, where the function 'run' is securely saved in couchdb. """
@@ -147,6 +158,7 @@ class CryptoTask(SaveObject):
     def execute_callable(self, p_callable):
         """ verify the callable, unpack, and call
         @param p_callable:
+        @type p_callable: 
         """
         if not isinstance(p_callable, dict):
             return False
@@ -174,7 +186,6 @@ class CryptoTask(SaveObject):
 
         if not self.m_start_execution:
             self.set_execution_timer()
-
         console("execute", self.object_id)
         Random.atfork()
         try:
@@ -183,7 +194,6 @@ class CryptoTask(SaveObject):
         except Exception, exc:
             success = False
             result = handle_exception(exc, return_error=True, raise_again=False)
-
         self.load()
         self.m_result = result
         self.m_success = success
@@ -195,15 +205,21 @@ class CryptoTask(SaveObject):
 
     #noinspection PyMethodMayBeStatic
     def run(self):
+        """
+        @raise RunError:
+        """
         raise RunError("run not implemented")
-
     #noinspection PyUnusedLocal,PyUnresolvedReferences
     def start(self, *argc, **argv):
         """ start the asynchronous excution of this task
         @param *argc:
+        @type *argc: 
         @param **argv:
+        @type **argv: 
         @param argc:
+        @type argc: 
         @param argv:
+        @type argv: 
         """
         argv = argv
 
@@ -218,6 +234,7 @@ class CryptoTask(SaveObject):
     def join(self, progressf=None):
         """ wait for completion of this task
         @param progressf:
+        @type progressf: 
         """
         if not self.dbase:
             raise Exception("No valid database avila")
@@ -239,6 +256,13 @@ class CryptoTask(SaveObject):
         return
 
     def notify_worker(self, taskserver, wait=False):
+        """
+        @param taskserver:
+        @type taskserver: 
+        @param wait:
+        @type wait: 
+        """
+
         try:
             server = Pyro4.Proxy("PYRO:pyro_methods_cryptobox@" + taskserver)
 
