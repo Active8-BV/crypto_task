@@ -27,11 +27,11 @@ Pyro4.config.HMAC_KEY = "sdhjfghvgchjgfuyeaguy"
 def send_error(displayfrom, subject, body):
     """ send email error report to administrator
     @param displayfrom:
-    @type displayfrom: 
+    @type displayfrom:
     @param subject:
-    @type subject: 
+    @type subject:
     @param body:
-    @type body: 
+    @type body:
     """
     if "myra" in subprocess.check_output("hostname"):
         console_warning("send_error", subject, body)
@@ -59,9 +59,9 @@ def send_error(displayfrom, subject, body):
 def make_p_callable(the_callable, params):
     """ takes a function with parameters and converts it to a pickle
     @param the_callable:
-    @type the_callable: 
+    @type the_callable:
     @param params:
-    @type params: 
+    @type params:
     """
     p_callable = {"marshaled_bytecode": marshal.dumps(the_callable.func_code),
                   "pickled_name": pickle.dumps(the_callable.func_name),
@@ -158,7 +158,7 @@ class CryptoTask(SaveObject):
     def execute_callable(self, p_callable):
         """ verify the callable, unpack, and call
         @param p_callable:
-        @type p_callable: 
+        @type p_callable:
         """
         if not isinstance(p_callable, dict):
             return False
@@ -213,13 +213,13 @@ class CryptoTask(SaveObject):
     def start(self, *argc, **argv):
         """ start the asynchronous excution of this task
         @param *argc:
-        @type *argc: 
+        @type *argc:
         @param **argv:
-        @type **argv: 
+        @type **argv:
         @param argc:
-        @type argc: 
+        @type argc:
         @param argv:
-        @type argv: 
+        @type argv:
         """
         argv = argv
 
@@ -234,7 +234,7 @@ class CryptoTask(SaveObject):
     def join(self, progressf=None):
         """ wait for completion of this task
         @param progressf:
-        @type progressf: 
+        @type progressf:
         """
         if not self.dbase:
             raise Exception("No valid database avila")
@@ -258,9 +258,9 @@ class CryptoTask(SaveObject):
     def notify_worker(self, taskserver, wait=False):
         """
         @param taskserver:
-        @type taskserver: 
+        @type taskserver:
         @param wait:
-        @type wait: 
+        @type wait:
         """
 
         try:
