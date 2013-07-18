@@ -39,6 +39,9 @@ def send_error(displayfrom, subject, body):
         return
 
     class Settings(object):
+        """
+        Settings
+        """
         email_from_email = ""
         email_from = ""
     settings = Settings()
@@ -72,6 +75,9 @@ def make_p_callable(the_callable, params):
 
 
 class RunError(Exception):
+    """
+    RunError
+    """
     pass
 
 
