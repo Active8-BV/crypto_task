@@ -207,14 +207,23 @@ class CryptoTask(SaveObject):
     def execute(self):
         """ set up structures and execute """
         if self.m_done:
-            return
+            return self.m_result
 
         if not self.m_callable_p64s:
-            raise Exception("There is no callable saved in this object")
+            loaded = self.load()
+
+            if not loaded:
+                return None
+            elif loaded:
+                if self.m_done:
+                    return self.m_result
+                else:
+                    return None
+            else:
+                raise Exception("There is no callable saved in this object")
 
         if not self.m_start_execution:
             self.set_execution_timer()
-        console("execute", self.object_id)
         Random.atfork()
         try:
             result = self.execute_callable(self.m_callable_p64s)
@@ -236,21 +245,17 @@ class CryptoTask(SaveObject):
         """
         @raise RunError:
         """
-        raise RunError("run not implemented")
-    #noinspection PyUnusedLocal,PyUnresolvedReferences
+        console_warning("run not implemented, don not use this class directly but inherit and override run")
+        return None
+
+    #noinspection PyUnusedLocal
     def start(self, *argc, **argv):
         """ start the asynchronous excution of this task
-        @param *argc:
-        @type *argc:
-        @param **argv:
-        @type **argv:
         @param argc:
         @type argc:
         @param argv:
         @type argv:
         """
-        argv = argv
-
         if not self.m_crypto_user_object_id:
             raise Exception("CryptoTask:start no crypto_user_object_id given")
             #noinspection PyUnresolvedReferences
