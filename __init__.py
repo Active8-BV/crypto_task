@@ -44,6 +44,7 @@ def send_error(displayfrom, subject, body):
         """
         email_from_email = ""
         email_from = ""
+
     settings = Settings()
     settings.email_from_email = "erik@a8.nl"
     settings.email_from = displayfrom
@@ -51,9 +52,11 @@ def send_error(displayfrom, subject, body):
     settings.email_host_password = "48fi0b"
     settings.email_host_user = "erik@active8.nl"
     email = mailer.Email(settings)
+
     #email.reply_email = ("erik@a8.nl", displayfrom)
     email.to_email = ("erik@active8.nl", "recipient")
     email.subject = subject
+
     #email.email_from = displayfrom
     email.body = mailer.Body(body, txt=body)
     email.send()
@@ -91,40 +94,58 @@ class CryptoTask(SaveObject):
 
     def __init__(self, dbase, crypto_user_object_id=None):
         """ async execution, where the function 'run' is securely saved in couchdb. """
+
         # the pickled executable
         self.m_callable_p64s = None
+
         # result after execution
         self.m_result = ""
+
         # execution done
         self.m_done = False
+
         # was the execution successful, false if an exception in the callable occurred
         self.m_success = False
+
         # class created
         self.m_created_time = None
+
         # time execution started
         self.m_start_execution = None
+
         # time execution stopped
         self.m_stop_execution = None
+
         # the signature of the pickled executable
         self.m_signature_p64s = None
+
         # max time the execution may run
         self.m_max_lifetime = 60 * 5
+
         # progress counter
         self.m_progress = 0
+
         # total for progress calculation
         self.m_total = 100
+
         # time in seconds the execution will take, for progress calculation
         self.m_expected_duration = 0
+
         # execution is running
         self.m_running = False
+
         # the object type
         self.m_command_object = None
+
         # public keys of the command queue
         self.public_keys = []
+
         # id of the user to which the task belongs
         self.m_crypto_user_object_id = None
+
         # data to operate on
         self.m_process_data_p64s = None
+
         # delete the task when completed
         self.m_delete_me_when_done = True
         self.object_type = "CryptoTask"
@@ -170,6 +191,7 @@ class CryptoTask(SaveObject):
             return False
 
         the_callable = types.FunctionType(marshal.loads(p_callable["marshaled_bytecode"]), globals(),
+
                                           pickle.loads(p_callable["pickled_name"]),
                                           pickle.loads(p_callable["pickled_arguments"]),
                                           pickle.loads(p_callable["pickled_closure"]))
