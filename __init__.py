@@ -87,7 +87,7 @@ class RunError(Exception):
 class CryptoTask(SaveObject):
     """
     @param dbase:
-    @type dbase:
+    @type dbase: CouchDBServer
     @param crypto_user_object_id:
     @type crypto_user_object_id:
     """
