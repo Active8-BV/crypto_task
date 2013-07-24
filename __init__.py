@@ -231,6 +231,7 @@ class CryptoTask(SaveObject):
         except Exception, exc:
             success = False
             result = handle_exception(exc, return_error=True, raise_again=False)
+
         self.load()
         self.m_result = result
         self.m_success = success
@@ -244,6 +245,7 @@ class CryptoTask(SaveObject):
     def run(self):
         """
         @raise RunError:
+
         """
         console_warning("run not implemented, don not use this class directly but inherit and override run")
         return None
@@ -258,6 +260,7 @@ class CryptoTask(SaveObject):
         """
         if not self.m_crypto_user_object_id:
             raise Exception("CryptoTask:start no crypto_user_object_id given")
+
             #noinspection PyUnresolvedReferences
         dict_callable = make_p_callable(self.run, argc)
         dict_callable["m_command_object"] = self.m_command_object
