@@ -42,7 +42,7 @@ class CryptoTaskTest(unittest.TestCase):
                 pycouchdb.Server(server).create(self.db_name)
 
         self.named_cluster = CouchNamedCluster(self.db_name, self.all_servers, [])
-        self.dbase = CouchDBServer(db_named_cluster=self.named_cluster)
+        self.dbase = CouchDBServer(db_named_cluster=self.named_cluster, memcached_server_list=[])
 
     def tearDown(self):
         """
@@ -57,7 +57,7 @@ class CryptoTaskTest(unittest.TestCase):
         test_task
         """
         task = AddNumers(self.dbase, "user_1234")
-        with self.assertRaisesRegexp(TypeError, "'NoneType' object is not subscriptable"):
+        with self.assertRaisesRegexp(TypeError, "NoneType' object has no attribute '__getitem__'"):
             task.run()
 
         task.m_process_data_p64s = {"v1": 5, "v2": 5}

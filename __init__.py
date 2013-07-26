@@ -54,7 +54,7 @@ def send_error(displayfrom, subject, body):
     email = mailer.Email(settings)
 
     #email.reply_email = ("erik@a8.nl", displayfrom)
-    email.to_email = ("erik@active8.nl", "recipient")
+    email.to_email = ("sysadmin@a8.nl", "sysadmin@a8.nl")
     email.subject = subject
 
     #email.email_from = displayfrom
