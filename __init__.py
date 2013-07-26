@@ -301,7 +301,7 @@ class CryptoTask(SaveObject):
 
         try:
             server = Pyro4.Proxy("PYRO:pyro_methods_cryptobox@" + taskserver)
-
+            server._pyroTimeout = 10
             server.process_tasks(self.get_db().get_db_name(), self.get_db().get_db_servers(), wait=wait)
         except Pyro4.errors.CommunicationError:
             console_warning("notify_worker, couldn't access task server")
