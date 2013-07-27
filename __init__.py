@@ -175,7 +175,6 @@ class CryptoTask(SaveObject):
         """ calculate running time """
         if not self.m_start_execution:
             return 0
-
         return time.time() - self.m_start_execution
 
     def life_time(self):
@@ -220,7 +219,6 @@ class CryptoTask(SaveObject):
                 else:
                     return None
             else:
-
                 raise Exception("There is no callable saved in this object")
 
         if not self.m_start_execution:
@@ -251,7 +249,6 @@ class CryptoTask(SaveObject):
         """
         console_warning("run not implemented, don not use this class directly but inherit and override run")
         return None
-
     #noinspection PyUnusedLocal
     def start(self, *argc, **argv):
         """ start the asynchronous excution of this task
