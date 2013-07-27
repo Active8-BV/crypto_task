@@ -152,7 +152,6 @@ class CryptoTask(SaveObject):
         self.m_command_object = self.get_object_type()
         self.m_created_time = time.time()
         self.m_crypto_user_object_id = crypto_user_object_id
-        self.m_delete_me_when_done = True
         object_id = inflection.underscore(self.object_type) + "_" + str(uuid.uuid4().hex) + ":" + inflection.underscore(self.m_command_object).replace("_", "-")
         super(CryptoTask, self).__init__(dbase=dbase,
                                          comment="this object represents a command and stores intermediary results",
