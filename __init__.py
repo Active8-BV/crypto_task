@@ -220,6 +220,7 @@ class CryptoTask(SaveObject):
                 else:
                     return None
             else:
+
                 raise Exception("There is no callable saved in this object")
 
         if not self.m_start_execution:
@@ -230,6 +231,7 @@ class CryptoTask(SaveObject):
             success = True
         except Exception, exc:
             success = False
+
             result = handle_exception(exc, return_error=True, raise_again=False)
 
         self.load()
@@ -303,6 +305,6 @@ class CryptoTask(SaveObject):
             server = Pyro4.Proxy("PYRO:pyro_methods_cryptobox@" + taskserver)
             server._pyroTimeout = 10
 
-            server.process_tasks(self.get_db().get_db_name(), self.get_db().get_db_servers(), wait=wait)
+            server.process_tasks(self.get_db().get_db_name(), self.get_db().get_db_servers(), self.get_db().get_memcached_server_list(), wait=wait)
         except Pyro4.errors.CommunicationError:
             console_warning("notify_worker, couldn't access task server")
