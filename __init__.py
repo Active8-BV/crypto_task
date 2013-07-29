@@ -160,6 +160,8 @@ class CryptoTask(SaveObject):
         self.object_type = "CryptoTask"
 
     def save(self, object_id=None, dbase=None, debug=False, force_save=False):
+        """
+        """
         mtx = Mutex(self.get_db().get_db_name(), self.object_id)
         mtx.acquire_lock()
 
