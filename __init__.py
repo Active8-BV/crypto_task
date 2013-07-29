@@ -20,7 +20,7 @@ import inflection
 from Crypto import Random
 import crypto_api
 import mailer
-from couchdb_api import SaveObject, handle_exception, console, console_warning
+from couchdb_api import SaveObject, handle_exception, console, console_warning, Mutex
 Pyro4.config.HMAC_KEY = "sdhjfghvgchjgfuyeaguy"
 
 
@@ -158,6 +158,15 @@ class CryptoTask(SaveObject):
                                          object_id=object_id)
 
         self.object_type = "CryptoTask"
+
+    def save(self, object_id=None, dbase=None, debug=False, force_save=False):
+        mtx = Mutex(self.get_db().get_db_name(), self.object_id)
+        mtx.acquire_lock()
+
+        try:
+            super(CryptoTask, self).save(object_id, dbase, debug, force_save)
+        finally:
+            mtx.release_lock()
 
     def display(self):
         """ display string """
