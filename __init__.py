@@ -161,7 +161,13 @@ class CryptoTask(SaveObject):
 
     def save(self, object_id=None, dbase=None, debug=False, force_save=False):
         """
+        save
+        :param object_id:
+        :param dbase:
+        :param debug:
+        :param force_save:
         """
+
         mtx = Mutex(self.get_db().get_db_name(), self.object_id)
         mtx.acquire_lock()
 
