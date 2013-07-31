@@ -35,7 +35,6 @@ def send_error(displayfrom, subject, body):
     """
     if "myra" in subprocess.check_output("hostname"):
         console_warning("send_error", subject, body)
-
         return
 
     class Settings(object):
@@ -187,7 +186,6 @@ class CryptoTask(SaveObject):
 
         raise Exception("total_execution_time: m_stop_execution not set")
 
-
     def execution_time(self):
         """ calculate running time """
         if not self.m_start_execution:
@@ -240,6 +238,7 @@ class CryptoTask(SaveObject):
 
         if not self.m_start_execution:
             self.set_execution_timer()
+
         Random.atfork()
         try:
             result = self.execute_callable(self.m_callable_p64s)
