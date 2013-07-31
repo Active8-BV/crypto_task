@@ -187,6 +187,7 @@ class CryptoTask(SaveObject):
 
         raise Exception("total_execution_time: m_stop_execution not set")
 
+
     def execution_time(self):
         """ calculate running time """
         if not self.m_start_execution:
