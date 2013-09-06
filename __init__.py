@@ -33,7 +33,7 @@ def send_error(displayfrom, subject, body):
     @param body:
     @type body:
     """
-    if "myra" in subprocess.check_output("hostname"):
+    if "lycia" in subprocess.check_output("hostname"):
         console_warning("send_error", subject, body)
         return
 
