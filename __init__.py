@@ -71,6 +71,7 @@ def make_p_callable(the_callable, params):
     p_callable = {"marshaled_bytecode": marshal.dumps(the_callable.func_code),
                   "pickled_name": pickle.dumps(the_callable.func_name),
                   "pickled_arguments": pickle.dumps(the_callable.func_defaults),
+
                   "pickled_closure": pickle.dumps(the_callable.func_closure), "params": params}
 
     return p_callable
@@ -171,7 +172,7 @@ class CryptoTask(SaveObject):
         mtx.acquire_lock()
 
         try:
-            super(CryptoTask, self).save(object_id, dbase, debug, force_save)
+            super(CryptoTask, self).save(object_id, dbase, debug, force_save, store_in_memcached=False)
         finally:
             mtx.release_lock()
 
@@ -205,7 +206,6 @@ class CryptoTask(SaveObject):
             return False
 
         the_callable = types.FunctionType(marshal.loads(p_callable["marshaled_bytecode"]), globals(),
-
                                           pickle.loads(p_callable["pickled_name"]),
                                           pickle.loads(p_callable["pickled_arguments"]),
                                           pickle.loads(p_callable["pickled_closure"]))
@@ -265,6 +265,7 @@ class CryptoTask(SaveObject):
         """
         console_warning("run not implemented, don not use this class directly but inherit and override run")
         return None
+
     #noinspection PyUnusedLocal
     def start(self, *argc, **argv):
         """ start the asynchronous excution of this task
