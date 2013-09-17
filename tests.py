@@ -20,7 +20,7 @@ class AddNumers(CryptoTask):
         """
         return self.m_process_data_p64s["v1"] + self.m_process_data_p64s["v2"]
 
-
+#noinspection PyPep8Naming
 class CryptoTaskTest(unittest.TestCase):
     """
     CryptoboTestCase
