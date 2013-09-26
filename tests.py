@@ -40,7 +40,7 @@ class CryptoTaskTest(unittest.TestCase):
                 couchdb.Server(server).delete(self.db_name)
 
         for server in self.all_servers:
-            if self.db_name not in couchdb.Server(server):
+            if self.db_name not in list(couchdb.Server(server)):
                 couchdb.Server(server).create(self.db_name)
 
         self.named_cluster = CouchNamedCluster(self.db_name, self.all_servers, [])
