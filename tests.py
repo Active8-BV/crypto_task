@@ -4,7 +4,7 @@ unit test for cryptotask
 """
 __author__ = 'rabshakeh'
 import unittest
-import pycouchdb
+import couchdb
 from couchdb_api import CouchDBServer, CouchNamedCluster
 from __init__ import *
 
@@ -21,6 +21,8 @@ class AddNumers(CryptoTask):
         return self.m_process_data_p64s["v1"] + self.m_process_data_p64s["v2"]
 
 #noinspection PyPep8Naming
+
+
 class CryptoTaskTest(unittest.TestCase):
     """
     CryptoboTestCase
@@ -34,12 +36,12 @@ class CryptoTaskTest(unittest.TestCase):
         self.db_name = 'crypto_task_test'
 
         for server in self.all_servers:
-            if self.db_name in pycouchdb.Server(server):
-                pycouchdb.Server(server).delete(self.db_name)
+            if self.db_name in list(couchdb.Server(server)):
+                couchdb.Server(server).delete(self.db_name)
 
         for server in self.all_servers:
-            if self.db_name not in pycouchdb.Server(server):
-                pycouchdb.Server(server).create(self.db_name)
+            if self.db_name not in couchdb.Server(server):
+                couchdb.Server(server).create(self.db_name)
 
         self.named_cluster = CouchNamedCluster(self.db_name, self.all_servers, [])
         self.dbase = CouchDBServer(db_named_cluster=self.named_cluster, memcached_server_list=[])
@@ -49,8 +51,8 @@ class CryptoTaskTest(unittest.TestCase):
         tearDown
         """
         for server in self.all_servers:
-            if self.db_name in pycouchdb.Server(server):
-                pycouchdb.Server(server).delete(self.db_name)
+            if self.db_name in list(couchdb.Server(server)):
+                couchdb.Server(server).delete(self.db_name)
 
     def test_task(self):
         """
