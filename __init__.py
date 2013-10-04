@@ -71,7 +71,6 @@ def make_p_callable(the_callable, params):
     p_callable = {"marshaled_bytecode": marshal.dumps(the_callable.func_code),
                   "pickled_name": pickle.dumps(the_callable.func_name),
                   "pickled_arguments": pickle.dumps(the_callable.func_defaults),
-
                   "pickled_closure": pickle.dumps(the_callable.func_closure), "params": params}
 
     return p_callable
@@ -162,10 +161,12 @@ class CryptoTask(SaveObject):
     def save(self, object_id=None, dbase=None, debug=False, force_save=False, store_in_memcached=True):
         """
         save
-        :param object_id:
-        :param dbase:
-        :param debug:
-        :param force_save:
+        @type  object_id:
+        @type  dbase:
+        @type  debug:
+        @type  force_save:
+        @param store_in_memcached:
+        @type store_in_memcached: bool
         """
 
         mtx = Mutex(self.get_db().get_db_name(), self.object_id)
@@ -238,7 +239,6 @@ class CryptoTask(SaveObject):
 
         if not self.m_start_execution:
             self.set_execution_timer()
-
         Random.atfork()
         try:
             result = self.execute_callable(self.m_callable_p64s)
@@ -276,8 +276,8 @@ class CryptoTask(SaveObject):
         """
         if not self.m_crypto_user_object_id:
             raise Exception("CryptoTask:start no crypto_user_object_id given")
-
             #noinspection PyUnresolvedReferences
+
         dict_callable = make_p_callable(self.run, argc)
         dict_callable["m_command_object"] = self.m_command_object
         self.m_callable_p64s = dict_callable
