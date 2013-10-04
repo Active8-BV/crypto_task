@@ -161,6 +161,10 @@ class CryptoTask(SaveObject):
     def save(self, object_id=None, dbase=None, debug=False, force_save=False, store_in_memcached=True):
         """
         save
+        @param object_id:
+        @param dbase:
+        @param debug:
+        @param force_save:
         @type  object_id:
         @type  dbase:
         @type  debug:
