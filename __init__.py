@@ -162,11 +162,11 @@ class CryptoTask(SaveObject):
         """
         save
         @param object_id:
-        @type object_id: 
+        @type object_id:
         @param dbase:
-        @type dbase: 
+        @type dbase:
         @param debug:
-        @type debug: 
+        @type debug:
         @param force_save:
         @type  object_id:
         @type  dbase:
@@ -176,7 +176,7 @@ class CryptoTask(SaveObject):
         @type store_in_memcached: bool
         """
 
-        mtx = Mutex(self.get_db().get_db_name(), self.object_id)
+        mtx = Mutex(self.get_db().get_memcached_server_list(), self.get_db().get_db_name(), self.object_id)
         mtx.acquire_lock()
 
         try:
