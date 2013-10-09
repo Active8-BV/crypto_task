@@ -158,7 +158,7 @@ class CryptoTask(SaveObject):
 
         self.object_type = "CryptoTask"
 
-    def locked_save(self, object_id=None, dbase=None, debug=False, force_save=False, store_in_memcached=True):
+    def save(self, object_id=None, dbase=None, debug=False, force_save=False, store_in_memcached=True):
         """
         save
         @param object_id:
