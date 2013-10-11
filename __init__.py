@@ -14,14 +14,11 @@ import types
 import pickle
 import uuid
 import subprocess
-import Pyro4
-import Pyro4.errors
 import inflection
 from Crypto import Random
 import crypto_api
 import mailer
 from couchdb_api import SaveObject, handle_exception, console, console_warning, Mutex
-Pyro4.config.HMAC_KEY = "sdhjfghvgchjgfuyeaguy"
 
 
 def send_error(displayfrom, subject, body):
@@ -313,19 +310,3 @@ class CryptoTask(SaveObject):
             time.sleep(0.5)
 
         return
-
-    def notify_worker(self, taskserver, wait=False):
-        """
-        @param taskserver:
-        @type taskserver:
-        @param wait:
-        @type wait:
-        """
-
-        try:
-            server = Pyro4.Proxy("PYRO:pyro_methods_cryptobox@" + taskserver)
-            server._pyroTimeout = 10
-
-            server.process_tasks(self.get_db().get_db_name(), self.get_db().get_db_servers(), self.get_db().get_memcached_server_list(), wait=wait)
-        except Pyro4.errors.CommunicationError:
-            console_warning("notify_worker, couldn't access task server")
