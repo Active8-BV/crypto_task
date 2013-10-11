@@ -252,7 +252,6 @@ class CryptoTask(SaveObject):
 
             result = handle_exception(exc, return_error=True, raise_again=False)
 
-        self.load()
         self.m_result = result
         self.m_success = success
         self.m_running = False
