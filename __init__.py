@@ -217,48 +217,24 @@ class CryptoTask(SaveObject):
 
         return the_callable(self, *p_callable["params"])
 
-    def set_execution_timer(self):
-        """ start the timer """
-        self.m_start_execution = time.time()
-        self.m_running = True
-        self.save()
-
     def execute(self):
         """ set up structures and execute """
         if self.m_done:
             return self.m_result
 
         if not self.m_callable_p64s:
-            loaded = self.load()
+            raise Exception("There is no callable saved in this object")
 
-            if not loaded:
-                return None
-            elif loaded:
-                if self.m_done:
-                    return self.m_result
-                else:
-                    return None
-            else:
-                raise Exception("There is no callable saved in this object")
+        self.m_start_execution = time.time()
+        self.m_running = True
 
-        if not self.m_start_execution:
-            self.set_execution_timer()
         Random.atfork()
-        try:
-            result = self.execute_callable(self.m_callable_p64s)
-            success = True
-        except Exception, exc:
-            success = False
-
-            result = handle_exception(exc, return_error=True, raise_again=False)
-
-        self.m_result = result
-        self.m_success = success
+        self.m_result = self.execute_callable(self.m_callable_p64s)
+        self.m_success = True
         self.m_running = False
         self.m_callable_p64s = None
         self.m_done = True
         self.m_stop_execution = time.time()
-        self.save()
 
     #noinspection PyMethodMayBeStatic
     def run(self):
@@ -306,6 +282,6 @@ class CryptoTask(SaveObject):
                         progressf(self.object_id, self.m_progress, self.m_total)
                         last_progress = self.m_progress
 
-            time.sleep(0.5)
+            time.sleep(0.1)
 
         return
