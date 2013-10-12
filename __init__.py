@@ -155,32 +155,6 @@ class CryptoTask(SaveObject):
 
         self.object_type = "CryptoTask"
 
-    def save(self, object_id=None, dbase=None, debug=False, force_save=False, store_in_memcached=True):
-        """
-        save
-        @param object_id:
-        @type object_id:
-        @param dbase:
-        @type dbase:
-        @param debug:
-        @type debug:
-        @param force_save:
-        @type  object_id:
-        @type  dbase:
-        @type  debug:
-        @type  force_save:
-        @param store_in_memcached:
-        @type store_in_memcached: bool
-        """
-
-        mtx = Mutex(self.get_db().get_memcached_server_list(), self.get_db().get_db_name(), self.object_id)
-        mtx.acquire_lock()
-
-        try:
-            super(CryptoTask, self).save(object_id, dbase, debug, force_save, store_in_memcached=False)
-        finally:
-            mtx.release_lock()
-
     def display(self):
         """ display string """
         return self.m_command_object + " / " + self.object_id
@@ -227,7 +201,6 @@ class CryptoTask(SaveObject):
 
         self.m_start_execution = time.time()
         self.m_running = True
-
         Random.atfork()
         self.m_result = self.execute_callable(self.m_callable_p64s)
         self.m_success = True
