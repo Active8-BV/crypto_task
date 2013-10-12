@@ -103,6 +103,9 @@ class CryptoTask(SaveObject):
         # was the execution successful, false if an exception in the callable occurred
         self.m_success = False
 
+        # stored exception base64
+        self.m_b64_exception = ""
+
         # class created
         self.m_created_time = None
 
