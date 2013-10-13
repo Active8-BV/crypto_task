@@ -5,7 +5,7 @@ unit test for cryptotask
 __author__ = 'rabshakeh'
 import unittest
 import couchdb
-from couchdb_api import CouchDBServer, CouchNamedCluster
+from couchdb_api import CouchDBServer
 from __init__ import *
 
 
@@ -43,8 +43,7 @@ class CryptoTaskTest(unittest.TestCase):
             if self.db_name not in list(couchdb.Server(server)):
                 couchdb.Server(server).create(self.db_name)
 
-        self.named_cluster = CouchNamedCluster(self.db_name, self.all_servers, [])
-        self.dbase = CouchDBServer(db_named_cluster=self.named_cluster, memcached_server_list=[])
+        self.dbase = CouchDBServer(self.db_name, self.all_servers, memcached_server_list=["127.0.0.1:11211"])
 
     def tearDown(self):
         """
