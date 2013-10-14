@@ -68,6 +68,7 @@ class CryptoTaskTest(unittest.TestCase):
         task2 = CryptoTask(self.dbase, "user_1234")
         task2.load(object_id=task.object_id)
         task2.execute()
+        task2.save()
         task3 = CryptoTask(self.dbase, "user_1234")
         task3.load(object_id=task.object_id)
         self.assertEqual(task3.m_result, 10)
@@ -78,7 +79,8 @@ class CryptoTaskTest(unittest.TestCase):
         task3.delete()
         task5 = CryptoTask(self.dbase, "user_1234")
         task5.load(object_id=task.object_id)
-        self.assertIsNone(task5.execute())
+        with self.assertRaisesRegexp(Exception, "There is no callable saved in this object"):
+            self.assertIsNone(task5.execute())
 
 
 if __name__ == '__main__':
