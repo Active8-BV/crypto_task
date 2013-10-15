@@ -45,7 +45,7 @@ class CryptoTaskTest(unittest.TestCase):
 
         self.dbase = CouchDBServer(self.db_name, self.all_servers, memcached_server_list=["127.0.0.1:11211"])
         sync_all_views(self.dbase, ["couchdb_api", "crypto_api"])
-        self.cronjob = subprocess.Popen(["/usr/local/bin/python", "cronjob.py"], cwd="/Users/rabshakeh/workspace/cryptobox/crypto_taskworker")
+
 
     def tearDown(self):
         """
@@ -54,6 +54,22 @@ class CryptoTaskTest(unittest.TestCase):
         for server in self.all_servers:
             if self.db_name in list(couchdb.Server(server)):
                 couchdb.Server(server).delete(self.db_name)
+
+
+    def test_many_task(self):
+        """
+        """
+        tasks = []
+        for i in range(0, 100):
+            task = AddNumers(self.dbase, "user_1234")
+            task.m_delete_me_when_done = False
+            task.m_process_data_p64s = {"v1": 5, "v2": 5}
+            task.start()
+            tasks.append(task)
+        self.cronjob = subprocess.Popen(["/usr/local/bin/python", "cronjob.py"], cwd="/Users/rabshakeh/workspace/cryptobox/crypto_taskworker")
+        for t in tasks:
+            t.join()
+            self.assertEqual(t.m_result, 10)
         self.cronjob.terminate()
 
     def test_task(self):
@@ -70,8 +86,8 @@ class CryptoTaskTest(unittest.TestCase):
         task.start()
         task2 = CryptoTask(self.dbase, "user_1234")
         task2.load(object_id=task.object_id)
-        task2.start()
-        task2.join()
+        task2.execute()
+        task2.save()
         task3 = CryptoTask(self.dbase, "user_1234")
         task3.load(object_id=task.object_id)
         self.assertEqual(task3.m_result, 10)
@@ -84,8 +100,6 @@ class CryptoTaskTest(unittest.TestCase):
         task5.load(object_id=task.object_id)
         with self.assertRaisesRegexp(Exception, "There is no callable saved in this object"):
             self.assertIsNone(task5.execute())
-        with self.assertRaisesRegexp(TaskSaveError, "Cannot save tasks, use start"):
-            self.assertIsNone(task5.save())
 
 
 if __name__ == '__main__':
