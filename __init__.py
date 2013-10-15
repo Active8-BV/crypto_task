@@ -80,6 +80,13 @@ class RunError(Exception):
     pass
 
 
+class TaskSaveError(Exception):
+    """
+    TaskSaveError
+    """
+    pass
+
+
 class CryptoTask(SaveObject):
     """
     @param dbase:
@@ -236,7 +243,7 @@ class CryptoTask(SaveObject):
         dict_callable = make_p_callable(self.run, argc)
         dict_callable["m_command_object"] = self.m_command_object
         self.m_callable_p64s = dict_callable
-        self.save()
+        super(CryptoTask, self).save()
 
     def join(self, progressf=None):
         """ wait for completion of this task
@@ -261,3 +268,19 @@ class CryptoTask(SaveObject):
             time.sleep(0.1)
 
         return
+
+    def save(self, object_id=None, dbase=None, debug=False, force_save=False, store_in_memcached=True):
+        """
+        @param object_id:
+        @type object_id:
+        @param dbase:
+        @type dbase: CouchDBServer
+        @param debug:
+        @type debug:
+        @param force_save:
+        @type force_save:bool
+        @type store_in_memcached:bool
+        @return: @rtype:
+        """
+
+        raise TaskSaveError("Cannot save tasks, use .start")

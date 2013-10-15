@@ -5,7 +5,7 @@ unit test for cryptotask
 __author__ = 'rabshakeh'
 import unittest
 import couchdb
-from couchdb_api import CouchDBServer
+from couchdb_api import CouchDBServer, sync_all_views
 from __init__ import *
 
 
@@ -44,6 +44,8 @@ class CryptoTaskTest(unittest.TestCase):
                 couchdb.Server(server).create(self.db_name)
 
         self.dbase = CouchDBServer(self.db_name, self.all_servers, memcached_server_list=["127.0.0.1:11211"])
+        sync_all_views(self.dbase, ["couchdb_api", "crypto_api"])
+        self.cronjob = subprocess.Popen(["/usr/local/bin/python", "cronjob.py"], cwd="/Users/rabshakeh/workspace/cryptobox/crypto_taskworker")
 
     def tearDown(self):
         """
@@ -52,6 +54,7 @@ class CryptoTaskTest(unittest.TestCase):
         for server in self.all_servers:
             if self.db_name in list(couchdb.Server(server)):
                 couchdb.Server(server).delete(self.db_name)
+        self.cronjob.terminate()
 
     def test_task(self):
         """
@@ -67,8 +70,8 @@ class CryptoTaskTest(unittest.TestCase):
         task.start()
         task2 = CryptoTask(self.dbase, "user_1234")
         task2.load(object_id=task.object_id)
-        task2.execute()
-        task2.save()
+        task2.start()
+        task2.join()
         task3 = CryptoTask(self.dbase, "user_1234")
         task3.load(object_id=task.object_id)
         self.assertEqual(task3.m_result, 10)
@@ -81,8 +84,10 @@ class CryptoTaskTest(unittest.TestCase):
         task5.load(object_id=task.object_id)
         with self.assertRaisesRegexp(Exception, "There is no callable saved in this object"):
             self.assertIsNone(task5.execute())
+        with self.assertRaisesRegexp(TaskSaveError, "Cannot save tasks, use start"):
+            self.assertIsNone(task5.save())
 
 
 if __name__ == '__main__':
-    print "tests.py:86", 'crypto_task unittest'
+    print "tests.py:92", 'crypto_task unittest'
     unittest.main()
