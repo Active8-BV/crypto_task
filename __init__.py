@@ -256,6 +256,7 @@ class CryptoTask(SaveObject):
 
         last_progress = 0
 
+        #noinspection PyExceptClausesOrder
         try:
             loaded = self.load()
         except DocNotFoundException:
@@ -278,6 +279,7 @@ class CryptoTask(SaveObject):
 
             time.sleep(0.1)
 
+            #noinspection PyExceptClausesOrder
             try:
                 loaded = self.load()
             except DocNotFoundException:
