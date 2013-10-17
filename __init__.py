@@ -18,7 +18,7 @@ import inflection
 from Crypto import Random
 import crypto_api
 import mailer
-from couchdb_api import SaveObject, handle_exception, console, console_warning, Mutex
+from couchdb_api import SaveObject, handle_exception, console, console_warning, Mutex, DocNotFoundException
 
 
 def send_error(displayfrom, subject, body):
@@ -256,7 +256,17 @@ class CryptoTask(SaveObject):
 
         last_progress = 0
 
-        while self.load():
+        try:
+            loaded = self.load()
+        except DocNotFoundException:
+            loaded = False
+        except couchdb_api.DocNotFoundException:
+            loaded = False
+        except Exception, e:
+            console_warning(str(e))
+            loaded = False
+
+        while loaded:
             if self.m_done:
                 return
 
@@ -267,5 +277,15 @@ class CryptoTask(SaveObject):
                         last_progress = self.m_progress
 
             time.sleep(0.1)
+
+            try:
+                loaded = self.load()
+            except DocNotFoundException:
+                loaded = False
+            except couchdb_api.DocNotFoundException:
+                loaded = False
+            except Exception, e:
+                console_warning(str(e))
+                loaded = False
 
         return
