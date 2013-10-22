@@ -277,7 +277,7 @@ class CryptoTask(SaveObject):
                         progressf(self.object_id, self.m_progress, self.m_total)
                         last_progress = self.m_progress
 
-            time.sleep(0.1)
+            time.sleep(0.4)
 
             #noinspection PyExceptClausesOrder
             try:
@@ -287,7 +287,7 @@ class CryptoTask(SaveObject):
             except couchdb_api.DocNotFoundException:
                 loaded = False
             except Exception, e:
-                console_warning(str(e))
+                console("task already deleted", str(e))
                 loaded = False
 
         return
