@@ -277,7 +277,7 @@ class CryptoTask(SaveObject):
                         progressf(self.object_id, self.m_progress, self.m_total)
                         last_progress = self.m_progress
 
-            time.sleep(0.4)
+            time.sleep(1)
 
             #noinspection PyExceptClausesOrder
             try:
