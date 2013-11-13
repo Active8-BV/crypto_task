@@ -66,7 +66,7 @@ class CryptoTaskTest(unittest.TestCase):
             task.m_process_data_p64s = {"v1": 5, "v2": 5}
             task.start()
             tasks.append(task)
-        self.cronjob = subprocess.Popen(["/usr/local/bin/python", "cronjob.py"], cwd="/Users/rabshakeh/workspace/cryptobox/crypto_taskworker")
+        self.cronjob = subprocess.Popen(["/usr/bin/python", "cronjob.py"], cwd="/Users/rabshakeh/workspace/cryptobox/crypto_taskworker")
         for t in tasks:
             t.join()
             self.assertEqual(t.m_result, 10)
