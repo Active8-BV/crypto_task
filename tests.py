@@ -4,8 +4,6 @@ unit test for cryptotask
 """
 __author__ = 'rabshakeh'
 import unittest
-import couchdb
-from couchdb_api import CouchDBServer, sync_all_views
 from __init__ import *
 
 
@@ -46,7 +44,6 @@ class CryptoTaskTest(unittest.TestCase):
         self.dbase = CouchDBServer(self.db_name, self.all_servers, memcached_server_list=["127.0.0.1:11211"])
         sync_all_views(self.dbase, ["couchdb_api", "crypto_api"])
 
-
     def tearDown(self):
         """
         tearDown
@@ -55,18 +52,22 @@ class CryptoTaskTest(unittest.TestCase):
             if self.db_name in list(couchdb.Server(server)):
                 couchdb.Server(server).delete(self.db_name)
 
-
     def test_many_task(self):
         """
+        test_many_task
         """
         tasks = []
+
         for i in range(0, 100):
             task = AddNumers(self.dbase, "user_1234")
             task.m_delete_me_when_done = False
-            task.m_process_data_p64s = {"v1": 5, "v2": 5}
+            task.m_process_data_p64s = {"v1": 5,
+                                        "v2": 5}
             task.start()
             tasks.append(task)
+
         self.cronjob = subprocess.Popen(["/usr/bin/python", "cronjob.py"], cwd="/Users/rabshakeh/workspace/cryptobox/crypto_taskworker")
+
         for t in tasks:
             t.join()
             self.assertEqual(t.m_result, 10)
@@ -80,7 +81,8 @@ class CryptoTaskTest(unittest.TestCase):
         with self.assertRaisesRegexp(TypeError, "NoneType' object has no attribute '__getitem__'"):
             task.run()
 
-        task.m_process_data_p64s = {"v1": 5, "v2": 5}
+        task.m_process_data_p64s = {"v1": 5,
+                                    "v2": 5}
         result = task.run()
         self.assertEqual(result, 10)
         task.start()
@@ -103,5 +105,5 @@ class CryptoTaskTest(unittest.TestCase):
 
 
 if __name__ == '__main__':
-    print "tests.py:92", 'crypto_task unittest'
+    print "tests.py:108", 'crypto_task unittest'
     unittest.main()
