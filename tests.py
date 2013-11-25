@@ -30,6 +30,9 @@ class CryptoTaskTest(unittest.TestCase):
         """
         setUp
         """
+        import couchdb
+        import couchdb_api
+
         self.all_servers = ['http://127.0.0.1:5984/']
         self.db_name = 'crypto_task_test'
 
@@ -41,13 +44,14 @@ class CryptoTaskTest(unittest.TestCase):
             if self.db_name not in list(couchdb.Server(server)):
                 couchdb.Server(server).create(self.db_name)
 
-        self.dbase = CouchDBServer(self.db_name, self.all_servers, memcached_server_list=["127.0.0.1:11211"])
-        sync_all_views(self.dbase, ["couchdb_api", "crypto_api"])
+        self.dbase = couchdb_api.CouchDBServer(self.db_name, self.all_servers, memcached_server_list=["127.0.0.1:11211"])
+        couchdb_api.sync_all_views(self.dbase, ["couchdb_api", "crypto_api"])
 
     def tearDown(self):
         """
         tearDown
         """
+        import couchdb
         for server in self.all_servers:
             if self.db_name in list(couchdb.Server(server)):
                 couchdb.Server(server).delete(self.db_name)
