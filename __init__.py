@@ -16,7 +16,7 @@ import uuid
 import subprocess
 import inflection
 from Crypto import Random
-import crypto_api
+
 import mailer
 from couchdb_api import SaveObject, handle_exception, console, console_warning, Mutex, DocNotFoundException
 
