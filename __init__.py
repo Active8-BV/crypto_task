@@ -94,9 +94,6 @@ class CryptoTask(SaveObject):
 
     def __init__(self, dbase, crypto_user_object_id=None):
         """ async execution, where the function 'run' is securely saved in couchdb. """
-        # run once per minute, only once
-        self.m_once_per_minute_conjob = False
-
         # priority higher is sooner
         self.m_priority = 0
 
@@ -254,28 +251,6 @@ class CryptoTask(SaveObject):
         dict_callable["m_command_object"] = self.m_command_object
         self.m_callable_p64s = dict_callable
         self.save()
-
-    def save(self, object_id=None, dbase=None, debug=False, force_save=False, store_in_memcached=True):
-        """
-        save the object, check for conflicsts and resolve them
-        @param force_save:
-        @type force_save:
-        @param object_id: id of object
-        @type object_id: string
-        @param dbase: database
-        @type dbase: CouchDBServer
-        @param debug: debug?
-        @type debug: bool
-        @type store_in_memcached: bool
-        @return: success
-        @rtype: bool
-        """
-        if self.m_once_per_minute_conjob:
-            for cmd in self.collection():
-                if cmd.m_command_object == self.m_command_object:
-                    return
-
-        super(CryptoTask, self).save(object_id, dbase, debug, force_save)
 
     def join(self, progressf=None):
         """ wait for completion of this task
