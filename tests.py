@@ -32,7 +32,6 @@ class CryptoTaskTest(unittest.TestCase):
         """
         import couchdb
         import couchdb_api
-
         self.all_servers = ['http://127.0.0.1:5984/']
         self.db_name = 'crypto_task_test'
 
@@ -52,6 +51,7 @@ class CryptoTaskTest(unittest.TestCase):
         tearDown
         """
         import couchdb
+
         for server in self.all_servers:
             if self.db_name in list(couchdb.Server(server)):
                 couchdb.Server(server).delete(self.db_name)
@@ -67,6 +67,7 @@ class CryptoTaskTest(unittest.TestCase):
             task.m_delete_me_when_done = False
             task.m_process_data_p64s = {"v1": 5,
                                         "v2": 5}
+
             task.start()
             tasks.append(task)
 
@@ -87,6 +88,7 @@ class CryptoTaskTest(unittest.TestCase):
 
         task.m_process_data_p64s = {"v1": 5,
                                     "v2": 5}
+
         result = task.run()
         self.assertEqual(result, 10)
         task.start()
@@ -109,5 +111,5 @@ class CryptoTaskTest(unittest.TestCase):
 
 
 if __name__ == '__main__':
-    print "tests.py:108", 'crypto_task unittest'
+    print "tests.py:114", 'crypto_task unittest'
     unittest.main()

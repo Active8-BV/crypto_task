@@ -16,7 +16,6 @@ import uuid
 import subprocess
 import inflection
 from Crypto import Random
-
 import mailer
 from couchdb_api import SaveObject, handle_exception, console, console_warning, Mutex, DocNotFoundException
 
@@ -65,7 +64,11 @@ def make_p_callable(the_callable, params):
     @param params:
     @type params:
     """
-    p_callable = {"marshaled_bytecode": marshal.dumps(the_callable.func_code), "pickled_name": pickle.dumps(the_callable.func_name), "pickled_arguments": pickle.dumps(the_callable.func_defaults), "pickled_closure": pickle.dumps(the_callable.func_closure), "params": params}
+    p_callable = {"marshaled_bytecode": marshal.dumps(the_callable.func_code),
+                  "pickled_name": pickle.dumps(the_callable.func_name),
+                  "pickled_arguments": pickle.dumps(the_callable.func_defaults),
+                  "pickled_closure": pickle.dumps(the_callable.func_closure),
+                  "params": params}
 
     return p_callable
 
@@ -94,6 +97,7 @@ class CryptoTask(SaveObject):
 
     def __init__(self, dbase, crypto_user_object_id=None):
         """ async execution, where the function 'run' is securely saved in couchdb. """
+
         # priority higher is sooner
         self.m_priority = 0
 
@@ -159,7 +163,6 @@ class CryptoTask(SaveObject):
         self.m_crypto_user_object_id = crypto_user_object_id
         object_id = inflection.underscore(self.object_type) + "_" + str(uuid.uuid4().hex) + ":" + inflection.underscore(self.m_command_object).replace("_", "-")
         super(CryptoTask, self).__init__(dbase=dbase, comment="this object represents a command and stores intermediary results", object_id=object_id)
-
         self.object_type = "CryptoTask"
 
     def display(self):
@@ -204,7 +207,6 @@ class CryptoTask(SaveObject):
             return False
 
         the_callable = types.FunctionType(marshal.loads(p_callable["marshaled_bytecode"]), globals(), pickle.loads(p_callable["pickled_name"]), pickle.loads(p_callable["pickled_arguments"]), pickle.loads(p_callable["pickled_closure"]))
-
         return the_callable(self, *p_callable["params"])
 
     def execute(self):
@@ -245,6 +247,7 @@ class CryptoTask(SaveObject):
         """
         if not self.m_crypto_user_object_id:
             raise Exception("CryptoTask:start no crypto_user_object_id given")
+
             #noinspection PyUnresolvedReferences
 
         dict_callable = make_p_callable(self.run, argc)
