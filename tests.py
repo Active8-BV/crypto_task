@@ -51,9 +51,8 @@ class CryptoTaskTest(unittest.TestCase):
         tearDown
         """
         for keyid in gds_get_scalar_list(self.db_name, member="keyval"):
-            print gds_get_key_name(keyid)
+            print "tests.py:54", gds_get_key_name(keyid)
             gds_delete_item_on_key(self.db_name, keyid)
-
 
     def test_many_task(self):
         """
@@ -110,5 +109,5 @@ class CryptoTaskTest(unittest.TestCase):
 
 
 if __name__ == '__main__':
-    print "tests.py:114", 'crypto_task unittest'
+    print "tests.py:112", 'crypto_task unittest'
     unittest.main()

@@ -89,13 +89,13 @@ class TaskSaveError(Exception):
 
 class CryptoTask(SaveObjectGoogle):
     """
-    @param dbase:
-    @type dbase: CouchDBServer
+    @param serverconfig:
+    @type serverconfig: ServerConfig
     @param crypto_user_object_id:
     @type crypto_user_object_id:
     """
 
-    def __init__(self, dbase, crypto_user_object_id=None):
+    def __init__(self, serverconfig, crypto_user_object_id=None):
         """ async execution, where the function 'run' is securely saved in couchdb. """
 
         # priority higher is sooner
@@ -162,7 +162,7 @@ class CryptoTask(SaveObjectGoogle):
         self.m_created_time = time.time()
         self.m_crypto_user_object_id = crypto_user_object_id
         object_id = inflection.underscore(self.object_type) + "_" + str(uuid.uuid4().hex) + ":" + inflection.underscore(self.m_command_object).replace("_", "-")
-        super(CryptoTask, self).__init__(dbase=dbase, comment="this object represents a command and stores intermediary results", object_id=object_id)
+        super(CryptoTask, self).__init__(serverconfig=serverconfig, comment="this object represents a command and stores intermediary results", object_id=object_id)
         self.object_type = "CryptoTask"
         self.m_extra_indexed_keys = ["m_done", "m_success", "m_created_time", "m_start_execution", "m_progress", "m_running", "m_command_object", "m_crypto_user_object_id", "m_delete_me_when_done"]
 
@@ -261,7 +261,7 @@ class CryptoTask(SaveObjectGoogle):
         @param progressf:
         @type progressf:
         """
-        if not self.dbase:
+        if not self.serverconfig:
             raise Exception("No valid database avila")
 
         last_progress = 0
