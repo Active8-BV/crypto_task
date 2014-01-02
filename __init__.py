@@ -17,7 +17,7 @@ import subprocess
 import inflection
 from Crypto import Random
 import mailer
-from couchdb_api import SaveObject, handle_exception, console, console_warning, Mutex, DocNotFoundException
+from couchdb_api import SaveObjectGoogle, handle_exception, console, console_warning, Mutex, DocNotFoundException
 
 
 def send_error(displayfrom, subject, body):
@@ -87,7 +87,7 @@ class TaskSaveError(Exception):
     pass
 
 
-class CryptoTask(SaveObject):
+class CryptoTask(SaveObjectGoogle):
     """
     @param dbase:
     @type dbase: CouchDBServer
@@ -164,6 +164,7 @@ class CryptoTask(SaveObject):
         object_id = inflection.underscore(self.object_type) + "_" + str(uuid.uuid4().hex) + ":" + inflection.underscore(self.m_command_object).replace("_", "-")
         super(CryptoTask, self).__init__(dbase=dbase, comment="this object represents a command and stores intermediary results", object_id=object_id)
         self.object_type = "CryptoTask"
+        self.m_extra_indexed_keys = ["m_done", "m_success", "m_created_time", "m_start_execution", "m_progress", "m_running", "m_command_object", "m_crypto_user_object_id", "m_delete_me_when_done"]
 
     def display(self):
         """ display string """
