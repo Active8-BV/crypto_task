@@ -5,7 +5,6 @@ unit test for cryptotask
 __author__ = 'rabshakeh'
 import unittest
 from __init__ import *
-from couchdb_api import gds_delete_item_on_key, gds_get_scalar_list, gds_get_key_name
 
 
 class AddNumers(CryptoTask):
@@ -33,6 +32,7 @@ class CryptoTaskTest(unittest.TestCase):
         """
         import couchdb
         import couchdb_api
+
         self.all_servers = ['http://127.0.0.1:5984/']
         self.db_name = 'crypto_task_test'
 
@@ -45,14 +45,16 @@ class CryptoTaskTest(unittest.TestCase):
                 couchdb.Server(server).create(self.db_name)
 
         self.dbase = couchdb_api.CouchDBServer(self.db_name, self.all_servers, memcached_server_list=["127.0.0.1:11211"])
+        couchdb_api.sync_all_views(self.dbase, ["couchdb_api", "crypto_api"])
 
     def tearDown(self):
         """
         tearDown
         """
-        for keyid in gds_get_scalar_list(self.db_name, member="keyval"):
-            print "tests.py:54", gds_get_key_name(keyid)
-            gds_delete_item_on_key(self.db_name, keyid)
+        import couchdb
+        for server in self.all_servers:
+            if self.db_name in list(couchdb.Server(server)):
+                couchdb.Server(server).delete(self.db_name)
 
     def test_many_task(self):
         """
@@ -65,7 +67,6 @@ class CryptoTaskTest(unittest.TestCase):
             task.m_delete_me_when_done = False
             task.m_process_data_p64s = {"v1": 5,
                                         "v2": 5}
-
             task.start()
             tasks.append(task)
 
@@ -86,7 +87,6 @@ class CryptoTaskTest(unittest.TestCase):
 
         task.m_process_data_p64s = {"v1": 5,
                                     "v2": 5}
-
         result = task.run()
         self.assertEqual(result, 10)
         task.start()
@@ -109,5 +109,5 @@ class CryptoTaskTest(unittest.TestCase):
 
 
 if __name__ == '__main__':
-    print "tests.py:112", 'crypto_task unittest'
+    print "tests.py:108", 'crypto_task unittest'
     unittest.main()
