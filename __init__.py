@@ -17,7 +17,7 @@ import subprocess
 import inflection
 from Crypto import Random
 import mailer
-from couchdb_api import SaveObjectGoogle, handle_exception, console, console_warning, Mutex, DocNotFoundException
+from couchdb_api import SaveObjectGoogle, console, console_warning, DocNotFoundException
 
 
 def send_error(displayfrom, subject, body):
@@ -271,8 +271,6 @@ class CryptoTask(SaveObjectGoogle):
             loaded = self.load()
         except DocNotFoundException:
             loaded = False
-        except couchdb_api.DocNotFoundException:
-            loaded = False
         except Exception, e:
             console_warning(str(e))
             loaded = False
@@ -293,8 +291,6 @@ class CryptoTask(SaveObjectGoogle):
             try:
                 loaded = self.load()
             except DocNotFoundException:
-                loaded = False
-            except couchdb_api.DocNotFoundException:
                 loaded = False
             except Exception, e:
                 console("task already deleted", str(e))
