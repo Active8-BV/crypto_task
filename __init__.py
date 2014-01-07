@@ -21,13 +21,10 @@ from couchdb_api import SaveObjectGoogle, console, console_warning, DocNotFoundE
 
 
 def send_error(displayfrom, subject, body):
-    """ send email error report to administrator
-    @param displayfrom:
-    @type displayfrom:
-    @param subject:
-    @type subject:
-    @param body:
-    @type body:
+    """
+    @type displayfrom: str
+    @type subject: str
+    @type body: str
     """
     if "lycia" in subprocess.check_output("hostname"):
         console_warning("send_error", subject, body)
@@ -58,11 +55,9 @@ def send_error(displayfrom, subject, body):
 
 
 def make_p_callable(the_callable, params):
-    """ takes a function with parameters and converts it to a pickle
-    @param the_callable:
-    @type the_callable:
-    @param params:
-    @type params:
+    """
+    @type the_callable: CryptoTask
+    @type params: str
     """
     p_callable = {"marshaled_bytecode": marshal.dumps(the_callable.func_code),
                   "pickled_name": pickle.dumps(the_callable.func_name),
@@ -89,10 +84,7 @@ class TaskSaveError(Exception):
 
 class CryptoTask(SaveObjectGoogle):
     """
-    @param serverconfig:
-    @type serverconfig: ServerConfig
-    @param crypto_user_object_id:
-    @type crypto_user_object_id:
+    @type SaveObjectGoogle: str
     """
 
     def __init__(self, serverconfig, crypto_user_object_id=None):
@@ -200,9 +192,8 @@ class CryptoTask(SaveObjectGoogle):
         return time.time() - self.m_created_time
 
     def execute_callable(self, p_callable):
-        """ verify the callable, unpack, and call
-        @param p_callable:
-        @type p_callable:
+        """
+        @type p_callable: str
         """
         if not isinstance(p_callable, dict):
             return False
@@ -240,11 +231,8 @@ class CryptoTask(SaveObjectGoogle):
 
     #noinspection PyUnusedLocal
     def start(self, *argc, **argv):
-        """ start the asynchronous excution of this task
-        @param argc:
-        @type argc:
-        @param argv:
-        @type argv:
+        """
+        start
         """
         if not self.m_crypto_user_object_id:
             raise Exception("CryptoTask:start no crypto_user_object_id given")
@@ -257,9 +245,8 @@ class CryptoTask(SaveObjectGoogle):
         self.save()
 
     def join(self, progressf=None):
-        """ wait for completion of this task
-        @param progressf:
-        @type progressf:
+        """
+        @type progressf: str, None
         """
         if not self.serverconfig:
             raise Exception("No valid database avila")
