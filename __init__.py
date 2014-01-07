@@ -234,9 +234,9 @@ class CryptoTask(SaveObjectGoogle):
         """
         start
         @param argc:
-        @type argc: 
+        @type argc:
         @param argv:
-        @type argv: 
+        @type argv:
         """
         if not self.m_crypto_user_object_id:
             raise Exception("CryptoTask:start no crypto_user_object_id given")
