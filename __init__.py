@@ -56,8 +56,8 @@ def send_error(displayfrom, subject, body):
 
 def make_p_callable(the_callable, params):
     """
-    @type the_callable: CryptoTask
-    @type params: str
+    @type the_callable:
+    @type params: tuple
     """
     p_callable = {"marshaled_bytecode": marshal.dumps(the_callable.func_code),
                   "pickled_name": pickle.dumps(the_callable.func_name),
@@ -84,7 +84,7 @@ class TaskSaveError(Exception):
 
 class CryptoTask(SaveObjectGoogle):
     """
-    @type SaveObjectGoogle: str
+    CryptoTask
     """
 
     def __init__(self, serverconfig, crypto_user_object_id=None):
@@ -233,6 +233,8 @@ class CryptoTask(SaveObjectGoogle):
     def start(self, *argc, **argv):
         """
         start
+        @param argc:
+        @param argv:
         """
         if not self.m_crypto_user_object_id:
             raise Exception("CryptoTask:start no crypto_user_object_id given")
