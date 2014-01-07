@@ -36,45 +36,15 @@ class CryptoTaskTest(unittest.TestCase):
         self.all_servers = ['http://127.0.0.1:5984/']
         self.db_name = 'crypto_task_test'
 
-        for server in self.all_servers:
-            if self.db_name in list(couchdb.Server(server)):
-                couchdb.Server(server).delete(self.db_name)
-
-        for server in self.all_servers:
-            if self.db_name not in list(couchdb.Server(server)):
-                couchdb.Server(server).create(self.db_name)
-
-        self.dbase = couchdb_api.CouchDBServer(self.db_name, self.all_servers, memcached_server_list=["127.0.0.1:11211"])
+        self.dbase = couchdb_api.ServerConfig(self.db_name, memcached_server_list=["127.0.0.1:11211"])
 
     def tearDown(self):
         """
         tearDown
         """
         for keyid in gds_get_scalar_list(self.db_name, member="keyval"):
-            print "tests.py:54", gds_get_key_name(keyid)
             gds_delete_item_on_key(self.db_name, keyid)
 
-    def test_many_task(self):
-        """
-        test_many_task
-        """
-        tasks = []
-
-        for i in range(0, 100):
-            task = AddNumers(self.dbase, "user_1234")
-            task.m_delete_me_when_done = False
-            task.m_process_data_p64s = {"v1": 5,
-                                        "v2": 5}
-
-            task.start()
-            tasks.append(task)
-
-        self.cronjob = subprocess.Popen(["/usr/bin/python", "cronjob.py"], cwd="/Users/rabshakeh/workspace/cryptobox/crypto_taskworker")
-
-        for t in tasks:
-            t.join()
-            self.assertEqual(t.m_result, 10)
-        self.cronjob.terminate()
 
     def test_task(self):
         """
