@@ -19,9 +19,8 @@ class AddNumers(CryptoTask):
         """
         return self.m_process_data_p64s["v1"] + self.m_process_data_p64s["v2"]
 
+
 #noinspection PyPep8Naming
-
-
 class CryptoTaskTest(unittest.TestCase):
     """
     CryptoboTestCase
@@ -35,7 +34,6 @@ class CryptoTaskTest(unittest.TestCase):
         import couchdb_api
         self.all_servers = ['http://127.0.0.1:5984/']
         self.db_name = 'crypto_task_test'
-
         self.dbase = couchdb_api.ServerConfig(self.db_name, memcached_server_list=["127.0.0.1:11211"])
 
     def tearDown(self):
@@ -45,13 +43,13 @@ class CryptoTaskTest(unittest.TestCase):
         for keyid in gds_get_scalar_list(self.db_name, member="keyval"):
             gds_delete_item_on_key(self.db_name, keyid)
 
-
     def test_task(self):
         """
         test_task
         """
         task = AddNumers(self.dbase, "user_1234")
         with self.assertRaisesRegexp(TypeError, "NoneType' object has no attribute '__getitem__'"):
+
             task.run()
 
         task.m_process_data_p64s = {"v1": 5,
@@ -79,5 +77,5 @@ class CryptoTaskTest(unittest.TestCase):
 
 
 if __name__ == '__main__':
-    print "tests.py:112", 'crypto_task unittest'
+    print "tests.py:80", 'crypto_task unittest'
     unittest.main()
