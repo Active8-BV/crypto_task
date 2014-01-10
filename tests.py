@@ -5,7 +5,7 @@ unit test for cryptotask
 __author__ = 'rabshakeh'
 import unittest
 from __init__ import *
-from couchdb_api import gds_delete_item_on_key, gds_get_scalar_list, gds_get_key_name
+from couchdb_api import gds_delete_item_on_key, gds_get_scalar_list
 
 
 class AddNumers(CryptoTask):
@@ -30,7 +30,6 @@ class CryptoTaskTest(unittest.TestCase):
         """
         setUp
         """
-        import couchdb
         import couchdb_api
         self.all_servers = ['http://127.0.0.1:5984/']
         self.db_name = 'crypto_task_test'
