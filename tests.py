@@ -76,5 +76,5 @@ class CryptoTaskTest(unittest.TestCase):
 
 
 if __name__ == '__main__':
-    print "tests.py:80", 'crypto_task unittest'
+    print "tests.py:79", 'crypto_task unittest'
     unittest.main()
