@@ -50,7 +50,6 @@ class CryptoTaskTest(unittest.TestCase):
         """
         task = AddNumers(self.dbase, "user_1234")
         with self.assertRaisesRegexp(TypeError, "NoneType' object has no attribute '__getitem__'"):
-
             task.run()
 
         task.m_process_data_p64s = {"v1": 5,
@@ -78,5 +77,5 @@ class CryptoTaskTest(unittest.TestCase):
 
 
 if __name__ == '__main__':
-    print "tests.py:81", 'crypto_task unittest'
+    print "tests.py:80", 'crypto_task unittest'
     unittest.main()
