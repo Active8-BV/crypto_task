@@ -35,12 +35,14 @@ class CryptoTaskTest(unittest.TestCase):
         self.db_name = 'crypto_task_test'
         self.dbase = couchdb_api.ServerConfig(self.db_name, memcached_server_list=["127.0.0.1:11211"])
 
+
     def tearDown(self):
         """
         tearDown
         """
         for keyid in gds_get_scalar_list(self.db_name, member="keyval"):
             gds_delete_item_on_key(self.db_name, keyid)
+
 
     def test_task(self):
         """
@@ -76,5 +78,5 @@ class CryptoTaskTest(unittest.TestCase):
 
 
 if __name__ == '__main__':
-    print "tests.py:79", 'crypto_task unittest'
+    print "tests.py:81", 'crypto_task unittest'
     unittest.main()

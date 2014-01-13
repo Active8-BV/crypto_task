@@ -158,9 +158,11 @@ class CryptoTask(SaveObjectGoogle):
         self.object_type = "CryptoTask"
         self.m_extra_indexed_keys = ["m_done", "m_success", "m_created_time", "m_start_execution", "m_progress", "m_running", "m_command_object", "m_crypto_user_object_id", "m_delete_me_when_done"]
 
+
     def display(self):
         """ display string """
         return self.m_command_object + " / " + self.object_id
+
 
     def set_high_priority(self):
         """
@@ -168,11 +170,13 @@ class CryptoTask(SaveObjectGoogle):
         """
         self.m_priority = 10
 
+
     def set_medium_priority(self):
         """
         ordering task queue
         """
         self.m_priority = 5
+
 
     def total_execution_time(self):
         """ calculate total time """
@@ -187,9 +191,11 @@ class CryptoTask(SaveObjectGoogle):
             return 0
         return time.time() - self.m_start_execution
 
+
     def life_time(self):
         """ calculate life time of object """
         return time.time() - self.m_created_time
+
 
     def execute_callable(self, p_callable):
         """
@@ -200,6 +206,7 @@ class CryptoTask(SaveObjectGoogle):
 
         the_callable = types.FunctionType(marshal.loads(p_callable["marshaled_bytecode"]), globals(), pickle.loads(p_callable["pickled_name"]), pickle.loads(p_callable["pickled_arguments"]), pickle.loads(p_callable["pickled_closure"]))
         return the_callable(self, *p_callable["params"])
+
 
     def execute(self):
         """ set up structures and execute """
@@ -247,6 +254,7 @@ class CryptoTask(SaveObjectGoogle):
         dict_callable["m_command_object"] = self.m_command_object
         self.m_callable_p64s = dict_callable
         self.save()
+
 
     def join(self, progressf=None):
         """
