@@ -4,6 +4,18 @@ unit test for cryptotask
 """
 __author__ = 'rabshakeh'
 import unittest
+
+
+def add_paths():
+    """
+    add_paths
+    """
+    import os
+    import sys
+    sys.path.append(os.path.normpath(os.path.join(os.getcwd(), "..")))
+
+
+add_paths()
 from __init__ import *
 from couchdb_api import gds_delete_item_on_key, gds_get_scalar_list
 
@@ -77,5 +89,5 @@ class CryptoTaskTest(unittest.TestCase):
 
 
 if __name__ == '__main__':
-    print "tests.py:80", 'crypto_task unittest'
+    print "tests.py:92", 'crypto_task unittest'
     unittest.main()
