@@ -12,6 +12,7 @@ def add_paths():
     """
     import os
     import sys
+
     sys.path.append(os.path.normpath(os.path.join(os.getcwd(), "..")))
 
 
@@ -87,5 +88,5 @@ class CryptoTaskTest(unittest.TestCase):
 
 
 if __name__ == '__main__':
-    print "tests.py:90", 'crypto_task unittest'
+    print "tests.py:91", 'crypto_task unittest'
     unittest.main()

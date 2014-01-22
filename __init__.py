@@ -224,7 +224,6 @@ class CryptoTask(SaveObjectGoogle):
     def run(self):
         """
         @raise RunError:
-
         """
         console_warning("run not implemented, don not use this class directly but inherit and override run")
         return None
