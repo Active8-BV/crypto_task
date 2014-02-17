@@ -178,13 +178,13 @@ class CryptoTask(SaveObjectGoogle):
         """ calculate total time """
         if self.m_stop_execution:
             return self.m_stop_execution - self.m_start_execution
-
         raise Exception("total_execution_time: m_stop_execution not set")
 
     def execution_time(self):
         """ calculate running time """
         if not self.m_start_execution:
             return 0
+
         return time.time() - self.m_start_execution
 
     def life_time(self):
@@ -241,7 +241,6 @@ class CryptoTask(SaveObjectGoogle):
             raise Exception("CryptoTask:start no crypto_user_object_id given")
 
             #noinspection PyUnresolvedReferences
-
         dict_callable = make_p_callable(self.run, argc)
         dict_callable["m_command_object"] = self.m_command_object
         self.m_callable_p64s = dict_callable

@@ -34,6 +34,8 @@ class AddNumers(CryptoTask):
 
 
 #noinspection PyPep8Naming
+
+
 class CryptoTaskTest(unittest.TestCase):
     """
     CryptoboTestCase
@@ -88,5 +90,5 @@ class CryptoTaskTest(unittest.TestCase):
 
 
 if __name__ == '__main__':
-    print "tests.py:91", 'crypto_task unittest'
+    print "tests.py:93", 'crypto_task unittest'
     unittest.main(failfast=True)
