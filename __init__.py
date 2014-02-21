@@ -197,7 +197,6 @@ class CryptoTask(SaveObjectGoogle):
         """
         if not isinstance(p_callable, dict):
             return False
-
         the_callable = types.FunctionType(marshal.loads(p_callable["marshaled_bytecode"]), globals(), pickle.loads(p_callable["pickled_name"]), pickle.loads(p_callable["pickled_arguments"]), pickle.loads(p_callable["pickled_closure"]))
         return the_callable(self, *p_callable["params"])
 
