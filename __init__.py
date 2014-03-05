@@ -286,6 +286,7 @@ class CryptoTask(SaveObjectGoogle):
         dict_callable["m_command_object"] = self.m_command_object
         self.m_callable_p64s = dict_callable
         self.save(store_in_datastore=False)
+
         mc = MemcachedServer(self.get_serverconfig().get_memcached_server_list(), "taskserver")
         mc.set("runtasks", True)
 
@@ -294,17 +295,13 @@ class CryptoTask(SaveObjectGoogle):
         @type progressf: str, None
         """
         if not self.serverconfig:
-            raise Exception("No valid database avila")
+            raise Exception("No serverconfig")
 
         last_progress = 0
 
-        #noinspection PyExceptClausesOrder
         try:
-            loaded = self.load()
+            loaded = self.load(load_from_datastore=False)
         except DocNotFoundException:
-            loaded = False
-        except Exception, e:
-            console_warning(str(e))
             loaded = False
 
         while loaded:
@@ -323,7 +320,7 @@ class CryptoTask(SaveObjectGoogle):
 
             #noinspection PyExceptClausesOrder
             try:
-                loaded = self.load()
+                loaded = self.load(load_from_datastore=False)
             except DocNotFoundException:
                 loaded = False
             except Exception, e:
