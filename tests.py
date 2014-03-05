@@ -18,7 +18,7 @@ def add_paths():
 
 add_paths()
 from __init__ import *
-from couchdb_api import gds_delete_item_on_key, gds_get_scalar_list
+from couchdb_api import gds_delete_item_on_key, gds_get_scalar_list, ServerConfig, gds_delete_namespace
 
 
 class AddNumers(CryptoTask):
@@ -45,17 +45,8 @@ class CryptoTaskTest(unittest.TestCase):
         """
         setUp
         """
-        import couchdb_api
-        self.all_servers = ['http://127.0.0.1:5984/']
         self.db_name = 'crypto_task_test'
-        self.dbase = couchdb_api.ServerConfig(self.db_name, memcached_server_list=["127.0.0.1:11211"])
-
-    def tearDown(self):
-        """
-        tearDown
-        """
-        for keyid in gds_get_scalar_list(self.db_name, member="keyval"):
-            gds_delete_item_on_key(self.db_name, keyid)
+        self.dbase = ServerConfig(self.db_name, memcached_server_list=["127.0.0.1:11211"])
 
     def test_task(self):
         """
@@ -88,7 +79,59 @@ class CryptoTaskTest(unittest.TestCase):
         with self.assertRaisesRegexp(Exception, "There is no callable saved in this object"):
             self.assertIsNone(task5.execute())
 
+    def test_set_get_data(self):
+        """
+        test_set_get_data
+        """
+        gds_delete_namespace(self.dbase, self.db_name)
+        task = AddNumers(self.dbase, "user_1234")
+        task.set_data("hello", "world")
+        self.assertEqual({'arg0': 'hello', 'arg1': 'world'}, task.m_process_data_p64s)
+
+        task.set_data(v1="hello", v2="world")
+        self.assertEqual({'v1': 'hello', 'v2': 'world'}, task.m_process_data_p64s)
+
+        task.set_data("foo", "bar", v1="hello", v2="world")
+        self.assertEqual({'arg0': 'foo', 'arg1': 'bar', 'v2': 'world', 'v1': 'hello'}, task.m_process_data_p64s)
+
+        def f(p1, p2, v2='', v1=''):
+            """
+            @type p1: str
+            @type p2: str
+            @type v2: str
+            @type v1: str
+            """
+            self.assertEqual("foobarhelloworld", p1+p2+v1+v2)
+
+        args, kwargs =task.get_data_as_param()
+        apply(f, args, kwargs)
+        self.assertEqual("hello", task.get_data("v1"))
+        with self.assertRaisesRegexp(TaskException, "get_data, key not found"):
+            task.get_data("helli")
+        with self.assertRaisesRegexp(TaskException, "set_data, no params given"):
+            task.set_data()
+        with self.assertRaisesRegexp(TaskException, "get_data_as_param, no data set"):
+            task.get_data_as_param()
+
+        a = 1
+        b = ["hello", "world"]
+        c = 3.0
+        d = [{"foo":"bar"}, 2]
+        e = "hello"
+        task.set_data(self.dbase, a, b, c, d, e)
+        task.save()
+        task2 = AddNumers(self.dbase, "user_1234")
+        task2.load(object_id=task.object_id)
+        sc, a1, b1, c1, d1, e1= task2.get_data_as_param(True)
+        self.assertEqual(a, a1)
+        self.assertEqual(b, b1)
+        self.assertEqual(c, c1)
+        self.assertEqual(d, d1)
+        self.assertEqual(e, e1)
+
+        self.assertEqual(self.dbase.get_namespace(), sc.get_namespace())
+
 
 if __name__ == '__main__':
-    print "tests.py:93", 'crypto_task unittest'
+    print "tests.py:136", 'crypto_task unittest'
     unittest.main(failfast=True)

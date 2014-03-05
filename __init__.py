@@ -80,13 +80,20 @@ class TaskSaveError(Exception):
     pass
 
 
+class TaskException(Exception):
+    """
+    TaskException
+    """
+    pass
+
+
 class CryptoTask(SaveObjectGoogle):
     """
     CryptoTask
     """
 
     def __init__(self, serverconfig, crypto_user_object_id=None):
-        """ async execution, where the function 'run' is securely saved in couchdb. """
+        """ async execution, where the function 'run' is securely run in a new process """
         # priority higher is sooner
         self.m_priority = 0
         # the pickled executable
@@ -135,6 +142,63 @@ class CryptoTask(SaveObjectGoogle):
         super(CryptoTask, self).__init__(serverconfig=serverconfig, comment="this object represents a command and stores intermediary results", object_id=object_id)
         self.object_type = "CryptoTask"
         self.m_extra_indexed_keys = ["m_done", "m_success", "m_created_time", "m_start_execution", "m_progress", "m_running", "m_command_object", "m_crypto_user_object_id", "m_delete_me_when_done"]
+
+    def set_data(self, *args, **kwargs):
+        """
+        @param args:
+        @param kwargs:
+        """
+        cnt = 0
+        self.m_process_data_p64s = {}
+
+        for i in args:
+            self.m_process_data_p64s["arg" + str(cnt)] = i
+            cnt += 1
+
+        for k in kwargs:
+            self.m_process_data_p64s[k] = kwargs[k]
+            cnt += 1
+
+        if cnt == 0:
+            raise TaskException("set_data, no params given")
+
+    def get_data_as_param(self, only_args=False):
+        """
+        get_data
+        """
+        if self.m_process_data_p64s is None:
+            raise TaskException("get_data_as_param, no data set")
+
+        args = []
+        kwargs = {}
+        cnt = 0
+
+        for k in self.m_process_data_p64s:
+            cnt += 1
+
+            if k.startswith("arg"):
+                args.append(self.m_process_data_p64s[k])
+            else:
+                kwargs[k] = self.m_process_data_p64s[k]
+
+        if cnt == 0:
+            raise TaskException("get_data_as_param, no data set")
+
+        if only_args:
+            return args
+        return args, kwargs
+
+    def get_data(self, key):
+        """
+        @type key: str
+        """
+        if self.m_process_data_p64s is None:
+            raise TaskException("get_data, no data set")
+
+        if key in self.m_process_data_p64s:
+            return self.m_process_data_p64s[key]
+
+        raise TaskException("get_data, key not found")
 
     def display(self):
         """ display string """
