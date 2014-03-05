@@ -257,6 +257,7 @@ class CryptoTask(SaveObjectGoogle):
         self.m_callable_p64s = None
         self.m_done = True
         self.m_stop_execution = time.time()
+
         self.save(store_in_datastore=False)
 
     #noinspection PyMethodMayBeStatic
@@ -285,7 +286,9 @@ class CryptoTask(SaveObjectGoogle):
         self.m_callable_p64s = dict_callable
         self.save(store_in_datastore=False)
         mc = MemcachedServer(self.get_serverconfig().get_memcached_server_list(), "taskserver")
+
         mc.set("runtasks", self.get_serverconfig().get_namespace())
+
 
     def join(self, progressf=None, max_wait=None):
         """
@@ -298,7 +301,9 @@ class CryptoTask(SaveObjectGoogle):
         last_progress = 0
 
         try:
+            self.serverconfig.event("mc-get")
             loaded = self.load(load_from_datastore=False)
+            self.serverconfig.event("mc-get done")
         except ObjectLoadException:
             loaded = False
 
@@ -317,7 +322,7 @@ class CryptoTask(SaveObjectGoogle):
             time.sleep(0.1)
             mc = MemcachedServer(self.get_serverconfig().get_memcached_server_list(), "taskserver")
             mc.set("runtasks", self.get_serverconfig().get_namespace())
-            loaded = self.load(load_from_datastore=False)
+            self.load(load_from_datastore=False)
             runtime = time.time() - start
 
             if max_wait:
