@@ -17,7 +17,7 @@ import subprocess
 import inflection
 from Crypto import Random
 import mailer
-from couchdb_api import SaveObjectGoogle, console, console_warning, DocNotFoundException, MemcachedServer
+from couchdb_api import SaveObjectGoogle, console, console_warning, DocNotFoundException, MemcachedServer, ObjectLoadException
 
 
 def send_error(displayfrom, subject, body):
@@ -132,8 +132,6 @@ class CryptoTask(SaveObjectGoogle):
         self.m_crypto_user_object_id = None
         # data to operate on
         self.m_process_data_p64s = None
-        # delete the task when completed
-        self.m_delete_me_when_done = True
         self.object_type = "CryptoTask"
         self.m_command_object = self.get_object_type()
         self.m_created_time = time.time()
@@ -141,7 +139,7 @@ class CryptoTask(SaveObjectGoogle):
         object_id = inflection.underscore(self.object_type) + "_" + str(uuid.uuid4().hex) + ":" + inflection.underscore(self.m_command_object).replace("_", "-")
         super(CryptoTask, self).__init__(serverconfig=serverconfig, comment="this object represents a command and stores intermediary results", object_id=object_id)
         self.object_type = "CryptoTask"
-        self.m_extra_indexed_keys = ["m_done", "m_success", "m_created_time", "m_start_execution", "m_progress", "m_running", "m_command_object", "m_crypto_user_object_id", "m_delete_me_when_done"]
+        self.m_extra_indexed_keys = ["m_done", "m_success", "m_created_time", "m_start_execution", "m_progress", "m_running", "m_command_object", "m_crypto_user_object_id"]
 
     def set_data(self, *args, **kwargs):
         """
@@ -286,13 +284,13 @@ class CryptoTask(SaveObjectGoogle):
         dict_callable["m_command_object"] = self.m_command_object
         self.m_callable_p64s = dict_callable
         self.save(store_in_datastore=False)
-
         mc = MemcachedServer(self.get_serverconfig().get_memcached_server_list(), "taskserver")
         mc.set("runtasks", self.get_serverconfig().get_namespace())
 
-    def join(self, progressf=None):
+    def join(self, progressf=None, max_wait=None):
         """
-        @type progressf: str, None
+        @type progressf: function, None
+        @type max_wait: int
         """
         if not self.serverconfig:
             raise Exception("No serverconfig")
@@ -301,12 +299,14 @@ class CryptoTask(SaveObjectGoogle):
 
         try:
             loaded = self.load(load_from_datastore=False)
-        except DocNotFoundException:
+        except ObjectLoadException:
             loaded = False
 
-        while loaded:
+        start = time.time()
+        while True:
             if self.m_done:
-                return
+                self.delete(delete_from_datastore=False)
+                return self.m_success
 
             if progressf:
                 if self.m_progress:
@@ -317,14 +317,9 @@ class CryptoTask(SaveObjectGoogle):
             time.sleep(0.1)
             mc = MemcachedServer(self.get_serverconfig().get_memcached_server_list(), "taskserver")
             mc.set("runtasks", self.get_serverconfig().get_namespace())
+            loaded = self.load(load_from_datastore=False)
+            runtime = time.time() - start
 
-            #noinspection PyExceptClausesOrder
-            try:
-                loaded = self.load(load_from_datastore=False)
-            except DocNotFoundException:
-                loaded = False
-            except Exception, e:
-                console("task already deleted", str(e))
-                loaded = False
-
-        return
+            if max_wait:
+                if runtime > max_wait:
+                    raise TaskException("max_wait is reached "+ str(max_wait))
