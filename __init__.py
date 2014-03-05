@@ -288,7 +288,7 @@ class CryptoTask(SaveObjectGoogle):
         self.save(store_in_datastore=False)
 
         mc = MemcachedServer(self.get_serverconfig().get_memcached_server_list(), "taskserver")
-        mc.set("runtasks", True)
+        mc.set("runtasks", self.get_serverconfig().get_namespace())
 
     def join(self, progressf=None):
         """
@@ -316,7 +316,7 @@ class CryptoTask(SaveObjectGoogle):
 
             time.sleep(0.1)
             mc = MemcachedServer(self.get_serverconfig().get_memcached_server_list(), "taskserver")
-            mc.set("runtasks", True)
+            mc.set("runtasks", self.get_serverconfig().get_namespace())
 
             #noinspection PyExceptClausesOrder
             try:
