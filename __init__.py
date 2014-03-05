@@ -17,7 +17,7 @@ import subprocess
 import inflection
 from Crypto import Random
 import mailer
-from couchdb_api import SaveObjectGoogle, console, console_warning, DocNotFoundException
+from couchdb_api import SaveObjectGoogle, console, console_warning, DocNotFoundException, MemcachedServer
 
 
 def send_error(displayfrom, subject, body):
@@ -285,7 +285,9 @@ class CryptoTask(SaveObjectGoogle):
         dict_callable = make_p_callable(self.run, argc)
         dict_callable["m_command_object"] = self.m_command_object
         self.m_callable_p64s = dict_callable
-        self.save()
+        self.save(force_consistency=True)
+        mc = MemcachedServer(self.get_serverconfig().get_memcached_server_list(), "taskserver")
+        mc.set("runtasks", True)
 
     def join(self, progressf=None):
         """
@@ -315,7 +317,9 @@ class CryptoTask(SaveObjectGoogle):
                         progressf(self.object_id, self.m_progress, self.m_total)
                         last_progress = self.m_progress
 
-            time.sleep(1)
+            time.sleep(0.1)
+            mc = MemcachedServer(self.get_serverconfig().get_memcached_server_list(), "taskserver")
+            mc.set("runtasks", True)
 
             #noinspection PyExceptClausesOrder
             try:
