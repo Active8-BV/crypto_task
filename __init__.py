@@ -259,7 +259,7 @@ class CryptoTask(SaveObjectGoogle):
         self.m_callable_p64s = None
         self.m_done = True
         self.m_stop_execution = time.time()
-        self.save()
+        self.save(store_in_datastore=False)
 
     #noinspection PyMethodMayBeStatic
     def run(self):
@@ -285,7 +285,7 @@ class CryptoTask(SaveObjectGoogle):
         dict_callable = make_p_callable(self.run, argc)
         dict_callable["m_command_object"] = self.m_command_object
         self.m_callable_p64s = dict_callable
-        self.save(force_consistency=True)
+        self.save(store_in_datastore=False)
         mc = MemcachedServer(self.get_serverconfig().get_memcached_server_list(), "taskserver")
         mc.set("runtasks", True)
 
