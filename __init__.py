@@ -14,10 +14,12 @@ import types
 import pickle
 import uuid
 import subprocess
+
 import inflection
 from Crypto import Random
+
 import mailer
-from couchdb_api import SaveObjectGoogle, console, console_warning, DocNotFoundException, MemcachedServer, ObjectLoadException
+from couchdb_api import SaveObjectGoogle, console_warning, MemcachedServer, ObjectLoadException
 
 
 def send_error(displayfrom, subject, body):
@@ -162,7 +164,7 @@ class CryptoTask(SaveObjectGoogle):
 
     def get_data_as_param(self, only_args=False):
         """
-        get_data
+        @type only_args: bool
         """
         if self.m_process_data_p64s is None:
             raise TaskException("get_data_as_param, no data set")
@@ -257,7 +259,6 @@ class CryptoTask(SaveObjectGoogle):
         self.m_callable_p64s = None
         self.m_done = True
         self.m_stop_execution = time.time()
-
         self.save(store_in_datastore=False)
 
     #noinspection PyMethodMayBeStatic
@@ -286,9 +287,7 @@ class CryptoTask(SaveObjectGoogle):
         self.m_callable_p64s = dict_callable
         self.save(store_in_datastore=False)
         mc = MemcachedServer(self.get_serverconfig().get_memcached_server_list(), "taskserver")
-
         mc.set("runtasks", self.get_serverconfig().get_namespace())
-
 
     def join(self, progressf=None, max_wait=None):
         """
@@ -300,14 +299,12 @@ class CryptoTask(SaveObjectGoogle):
 
         last_progress = 0
 
-        try:
-            self.serverconfig.event("mc-get")
-            loaded = self.load(load_from_datastore=False)
-            self.serverconfig.event("mc-get done")
-        except ObjectLoadException:
-            loaded = False
+        self.serverconfig.event("mc-get")
+        self.load(load_from_datastore=False)
+        self.serverconfig.event("mc-get done")
 
         start = time.time()
+
         while True:
             if self.m_done:
                 self.delete(delete_from_datastore=False)
@@ -327,4 +324,4 @@ class CryptoTask(SaveObjectGoogle):
 
             if max_wait:
                 if runtime > max_wait:
-                    raise TaskException("max_wait is reached "+ str(max_wait))
+                    raise TaskException("max_wait is reached " + str(max_wait))

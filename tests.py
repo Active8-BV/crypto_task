@@ -12,13 +12,12 @@ def add_paths():
     """
     import os
     import sys
-
     sys.path.append(os.path.normpath(os.path.join(os.getcwd(), "..")))
 
 
 add_paths()
 from __init__ import *
-from couchdb_api import gds_delete_item_on_key, gds_get_scalar_list, ServerConfig, gds_delete_namespace
+from couchdb_api import ServerConfig, gds_delete_namespace
 
 
 class AddNumers(CryptoTask):
@@ -83,7 +82,7 @@ class CryptoTaskTest(unittest.TestCase):
         """
         test_set_get_data
         """
-        gds_delete_namespace(self.dbase, self.db_name)
+        gds_delete_namespace(self.dbase)
         task = AddNumers(self.dbase, "user_1234")
         task.set_data("hello", "world")
         self.assertEqual({'arg0': 'hello', 'arg1': 'world'}, task.m_process_data_p64s)
@@ -101,9 +100,9 @@ class CryptoTaskTest(unittest.TestCase):
             @type v2: str
             @type v1: str
             """
-            self.assertEqual("foobarhelloworld", p1+p2+v1+v2)
+            self.assertEqual("foobarhelloworld", p1 + p2 + v1 + v2)
 
-        args, kwargs =task.get_data_as_param()
+        args, kwargs = task.get_data_as_param()
         apply(f, args, kwargs)
         self.assertEqual("hello", task.get_data("v1"))
         with self.assertRaisesRegexp(TaskException, "get_data, key not found"):
@@ -116,13 +115,13 @@ class CryptoTaskTest(unittest.TestCase):
         a = 1
         b = ["hello", "world"]
         c = 3.0
-        d = [{"foo":"bar"}, 2]
+        d = [{"foo": "bar"}, 2]
         e = "hello"
         task.set_data(self.dbase, a, b, c, d, e)
         task.save()
         task2 = AddNumers(self.dbase, "user_1234")
         task2.load(object_id=task.object_id)
-        sc, a1, b1, c1, d1, e1= task2.get_data_as_param(True)
+        sc, a1, b1, c1, d1, e1 = task2.get_data_as_param(True)
         self.assertEqual(a, a1)
         self.assertEqual(b, b1)
         self.assertEqual(c, c1)
