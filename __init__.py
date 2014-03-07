@@ -11,13 +11,11 @@ www.a8.nl
 import time
 import marshal
 import types
-import pickle
+import cPickle
 import uuid
 import subprocess
-
 import inflection
 from Crypto import Random
-
 import mailer
 from couchdb_api import SaveObjectGoogle, console_warning, MemcachedServer
 
@@ -60,9 +58,9 @@ def make_p_callable(the_callable, params):
     @type params: tuple
     """
     p_callable = {"marshaled_bytecode": marshal.dumps(the_callable.func_code),
-                  "pickled_name": pickle.dumps(the_callable.func_name),
-                  "pickled_arguments": pickle.dumps(the_callable.func_defaults),
-                  "pickled_closure": pickle.dumps(the_callable.func_closure),
+                  "pickled_name": cPickle.dumps(the_callable.func_name),
+                  "pickled_arguments": cPickle.dumps(the_callable.func_defaults),
+                  "pickled_closure": cPickle.dumps(the_callable.func_closure),
                   "params": params}
 
     return p_callable
@@ -239,11 +237,13 @@ class CryptoTask(SaveObjectGoogle):
         """
         if not isinstance(p_callable, dict):
             return False
-        the_callable = types.FunctionType(marshal.loads(p_callable["marshaled_bytecode"]), globals(), pickle.loads(p_callable["pickled_name"]), pickle.loads(p_callable["pickled_arguments"]), pickle.loads(p_callable["pickled_closure"]))
+        the_callable = types.FunctionType(marshal.loads(p_callable["marshaled_bytecode"]), globals(), cPickle.loads(p_callable["pickled_name"]), cPickle.loads(p_callable["pickled_arguments"]), cPickle.loads(p_callable["pickled_closure"]))
         return the_callable(self, *p_callable["params"])
 
     def execute(self):
-        """ set up structures and execute """
+        """
+        execute
+        """
         if self.m_done:
             return self.m_result
 
@@ -298,11 +298,9 @@ class CryptoTask(SaveObjectGoogle):
             raise Exception("No serverconfig")
 
         last_progress = 0
-
         self.serverconfig.event("mc-get")
         self.load(load_from_datastore=False)
         self.serverconfig.event("mc-get done")
-
         start = time.time()
 
         while True:
