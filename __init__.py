@@ -19,7 +19,7 @@ import inflection
 from Crypto import Random
 
 import mailer
-from couchdb_api import SaveObjectGoogle, console_warning, MemcachedServer, ObjectLoadException
+from couchdb_api import SaveObjectGoogle, console_warning, MemcachedServer
 
 
 def send_error(displayfrom, subject, body):
