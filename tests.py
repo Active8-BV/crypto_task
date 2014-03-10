@@ -57,7 +57,7 @@ class AddNumersSlow(CryptoTask):
             @type a: str
             @type b: str
             """
-            time.sleep(1)
+            #time.sleep(1)
             return a + b
 
         return apply(_add, self.get_data_as_param(True))
@@ -201,13 +201,24 @@ class CryptoTaskTest(unittest.TestCase):
         """
         test_start_join
         """
-        cronjob = self.start_cron(True)
+
+        cronjob = self.start_cron()
+        self.serverconfig.event("nunm1")
         ans = AddNumersSlow(self.serverconfig, "user_1234", verbose=True)
         ans.add(2, 5)
         ans.start()
+        ans.join()
+        print "--------"
+        self.serverconfig.event("nunm2")
+        ans = AddNumersSlow(self.serverconfig, "user_1234", verbose=True)
+        ans.add(2, 5)
+        ans.start()
+        ans.join()
+        self.serverconfig.event("done")
+        self.serverconfig.report_measurements()
         #self.assertEqual(ans.run(), 7)
         #self.assertEqual(ans.m_result, "")
-        self.killcron(cronjob, 5)
+        self.killcron(cronjob, 1)
 
 
 if __name__ == '__main__':
