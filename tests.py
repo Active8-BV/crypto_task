@@ -80,7 +80,7 @@ class CryptoTaskTest(unittest.TestCase):
         setUp
         """
         self.db_name = 'crypto_task_test'
-        self.serverconfig = ServerConfig(self.db_name, memcached_server_list=["127.0.0.1:11211"])
+        self.serverconfig = ServerConfig(self.db_name)
 
     def test_task(self):
         """
