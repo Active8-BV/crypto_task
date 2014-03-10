@@ -39,6 +39,14 @@ class AddNumersSlow(CryptoTask):
     AddNumersSlow
     """
 
+    def __init__(self, serverconfig, crypto_user_object_id=None, verbose=False):
+        """
+        @type serverconfig: ServerConfig
+        @type crypto_user_object_id: str, None
+        @type verbose: bool
+        """
+        super(AddNumersSlow, self).__init__(serverconfig, crypto_user_object_id, verbose)
+
     def run(self):
         """
         run
@@ -49,6 +57,7 @@ class AddNumersSlow(CryptoTask):
             @type a: str
             @type b: str
             """
+            time.sleep(1)
             return a + b
 
         return apply(_add, self.get_data_as_param(True))
@@ -166,9 +175,9 @@ class CryptoTaskTest(unittest.TestCase):
 
         return cronjob
 
-    def killcron(self, cronjob):
+    def killcron(self, cronjob, delay=1):
         """
-        @type cronjob: str
+        @type cronjob: subprocess.Popen
         """
 
         def kill():
@@ -178,7 +187,7 @@ class CryptoTaskTest(unittest.TestCase):
             mc = MemcachedServer(self.serverconfig.get_memcached_server_list(), "taskserver")
             mc.set_spinlock_untill_received("runtasks", "kill", spin_seconds=4)
 
-        threading.Timer(1, kill).start()
+        threading.Timer(delay, kill).start()
         cronjob.wait()
 
     def test_kill_cron(self):
@@ -193,15 +202,14 @@ class CryptoTaskTest(unittest.TestCase):
         test_start_join
         """
         cronjob = self.start_cron(True)
-        ans = AddNumersSlow(self.serverconfig, "user_1234")
+        ans = AddNumersSlow(self.serverconfig, "user_1234", verbose=True)
         ans.add(2, 5)
-        ans = AddNumersSlow(self.serverconfig, "user_1234")
-        ans.add(2, 5)
-        self.assertEqual(ans.run(), 7)
-        self.assertEqual(ans.m_result, "")
-        self.killcron(cronjob)
+        ans.start()
+        #self.assertEqual(ans.run(), 7)
+        #self.assertEqual(ans.m_result, "")
+        self.killcron(cronjob, 5)
 
 
 if __name__ == '__main__':
-    print "tests.py:206", 'crypto_task unittest'
+    print "tests.py:214", 'crypto_task unittest'
     unittest.main(failfast=True)

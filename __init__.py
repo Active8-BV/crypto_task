@@ -92,8 +92,9 @@ class CryptoTask(SaveObjectGoogle):
     CryptoTask
     """
 
-    def __init__(self, serverconfig, crypto_user_object_id=None):
+    def __init__(self, serverconfig, crypto_user_object_id=None, verbose=False):
         """ async execution, where the function 'run' is securely run in a new process """
+        self.verbose = verbose
         # priority higher is sooner
         self.m_priority = 0
         # the pickled executable
@@ -286,8 +287,8 @@ class CryptoTask(SaveObjectGoogle):
         dict_callable["m_command_object"] = self.m_command_object
         self.m_callable_p64s = dict_callable
         self.save(store_in_datastore=False)
-        mc = MemcachedServer(self.get_serverconfig().get_memcached_server_list(), "taskserver")
-        mc.set_spinlock_untill_received("runtasks", self.get_serverconfig().get_namespace())
+        mc = MemcachedServer(self.get_serverconfig().get_memcached_server_list(), "taskserver", verbose=self.verbose)
+        mc.set("runtasks", self.get_serverconfig().get_namespace()+self.object_id)
 
     def join(self, progressf=None, max_wait=None):
         """
@@ -304,6 +305,9 @@ class CryptoTask(SaveObjectGoogle):
         start = time.time()
 
         while True:
+            mc = MemcachedServer(self.get_serverconfig().get_memcached_server_list(), "taskserver", verbose=self.verbose)
+            mc.set_spinlock_untill_received("runtasks", self.get_serverconfig().get_namespace()+self.object_id)
+
             if self.m_done:
                 self.delete(delete_from_datastore=False)
                 return self.m_success
