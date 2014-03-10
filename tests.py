@@ -4,6 +4,7 @@ unit test for cryptotask
 """
 __author__ = 'rabshakeh'
 import unittest
+import threading
 
 
 def add_paths():
@@ -12,6 +13,7 @@ def add_paths():
     """
     import os
     import sys
+
     sys.path.append(os.path.normpath(os.path.join(os.getcwd(), "..")))
 
 
@@ -32,7 +34,31 @@ class AddNumers(CryptoTask):
         return self.m_process_data_p64s["v1"] + self.m_process_data_p64s["v2"]
 
 
-#noinspection PyPep8Naming
+class AddNumersSlow(CryptoTask):
+    """
+    AddNumersSlow
+    """
+
+    def run(self):
+        """
+        run
+        """
+
+        def _add(a, b):
+            """
+            @type a: str
+            @type b: str
+            """
+            return a + b
+
+        return apply(_add, self.get_data_as_param(True))
+
+    def add(self, a, b):
+        """
+        @type a: int
+        @type b: int
+        """
+        self.set_data(a, b)
 
 
 class CryptoTaskTest(unittest.TestCase):
@@ -45,13 +71,13 @@ class CryptoTaskTest(unittest.TestCase):
         setUp
         """
         self.db_name = 'crypto_task_test'
-        self.dbase = ServerConfig(self.db_name, memcached_server_list=["127.0.0.1:11211"])
+        self.serverconfig = ServerConfig(self.db_name, memcached_server_list=["127.0.0.1:11211"])
 
     def test_task(self):
         """
         test_task
         """
-        task = AddNumers(self.dbase, "user_1234")
+        task = AddNumers(self.serverconfig, "user_1234")
         with self.assertRaisesRegexp(TypeError, "NoneType' object has no attribute '__getitem__'"):
             task.run()
 
@@ -61,19 +87,19 @@ class CryptoTaskTest(unittest.TestCase):
         result = task.run()
         self.assertEqual(result, 10)
         task.start()
-        task2 = CryptoTask(self.dbase, "user_1234")
+        task2 = CryptoTask(self.serverconfig, "user_1234")
         task2.load(object_id=task.object_id)
         task2.execute()
         task2.save()
-        task3 = CryptoTask(self.dbase, "user_1234")
+        task3 = CryptoTask(self.serverconfig, "user_1234")
         task3.load(object_id=task.object_id)
         self.assertEqual(task3.m_result, 10)
-        task4 = CryptoTask(self.dbase, "user_1234")
+        task4 = CryptoTask(self.serverconfig, "user_1234")
         task4.load(object_id=task.object_id)
         result_again = task4.execute()
         self.assertEqual(result_again, 10)
         task3.delete()
-        task5 = CryptoTask(self.dbase, "user_1234")
+        task5 = CryptoTask(self.serverconfig, "user_1234")
         task5.load(object_id=task.object_id)
         with self.assertRaisesRegexp(Exception, "There is no callable saved in this object"):
             self.assertIsNone(task5.execute())
@@ -82,8 +108,8 @@ class CryptoTaskTest(unittest.TestCase):
         """
         test_set_get_data
         """
-        gds_delete_namespace(self.dbase)
-        task = AddNumers(self.dbase, "user_1234")
+        gds_delete_namespace(self.serverconfig)
+        task = AddNumers(self.serverconfig, "user_1234")
         task.set_data("hello", "world")
         self.assertEqual({'arg0': 'hello', 'arg1': 'world'}, task.m_process_data_p64s)
 
@@ -117,9 +143,9 @@ class CryptoTaskTest(unittest.TestCase):
         c = 3.0
         d = [{"foo": "bar"}, 2]
         e = "hello"
-        task.set_data(self.dbase, a, b, c, d, e)
+        task.set_data(self.serverconfig, a, b, c, d, e)
         task.save()
-        task2 = AddNumers(self.dbase, "user_1234")
+        task2 = AddNumers(self.serverconfig, "user_1234")
         task2.load(object_id=task.object_id)
         sc, a1, b1, c1, d1, e1 = task2.get_data_as_param(True)
         self.assertEqual(a, a1)
@@ -127,10 +153,29 @@ class CryptoTaskTest(unittest.TestCase):
         self.assertEqual(c, c1)
         self.assertEqual(d, d1)
         self.assertEqual(e, e1)
+        self.assertEqual(self.serverconfig.get_namespace(), sc.get_namespace())
 
-        self.assertEqual(self.dbase.get_namespace(), sc.get_namespace())
+    def test_start_join(self):
+        """
+        test_start_join
+        """
+        cronjob = subprocess.Popen(["/usr/local/bin/python", "cronjob.py", "-v"], cwd="/Users/rabshakeh/workspace/cryptobox/crypto_taskworker")  #, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        ans = AddNumersSlow(self.serverconfig, "user_1234")
+        ans.add(2, 5)
+        self.assertEqual(ans.run(), 7)
+        self.assertEqual(ans.m_result, "")
+
+        def kill():
+            """
+            kill
+            """
+            mc = MemcachedServer(self.serverconfig.get_memcached_server_list(), "taskserver")
+            mc.set_spinlock_untill_received("runtasks", "kill", spin_seconds=4)
+
+        threading.Timer(1, kill).start()
+        cronjob.wait()
 
 
 if __name__ == '__main__':
-    print "tests.py:136", 'crypto_task unittest'
+    print "tests.py:180", 'crypto_task unittest'
     unittest.main(failfast=True)

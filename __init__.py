@@ -287,7 +287,7 @@ class CryptoTask(SaveObjectGoogle):
         self.m_callable_p64s = dict_callable
         self.save(store_in_datastore=False)
         mc = MemcachedServer(self.get_serverconfig().get_memcached_server_list(), "taskserver")
-        mc.set("runtasks", self.get_serverconfig().get_namespace())
+        mc.set_spinlock_untill_received("runtasks", self.get_serverconfig().get_namespace())
 
     def join(self, progressf=None, max_wait=None):
         """
@@ -315,8 +315,6 @@ class CryptoTask(SaveObjectGoogle):
                         last_progress = self.m_progress
 
             time.sleep(0.1)
-            mc = MemcachedServer(self.get_serverconfig().get_memcached_server_list(), "taskserver")
-            mc.set("runtasks", self.get_serverconfig().get_namespace())
             self.load(load_from_datastore=False)
             runtime = time.time() - start
 
