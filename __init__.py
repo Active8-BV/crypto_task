@@ -17,7 +17,7 @@ import subprocess
 import inflection
 from Crypto import Random
 import mailer
-from couchdb_api import SaveObjectGoogle, console_warning, MemcachedServer
+from couchdb_api import SaveObjectGoogle, console_warning, RedisServer
 
 
 def send_error(displayfrom, subject, body):
@@ -287,7 +287,7 @@ class CryptoTask(SaveObjectGoogle):
         dict_callable["m_command_object"] = self.m_command_object
         self.m_callable_p64s = dict_callable
         self.save(store_in_datastore=False)
-        mc = MemcachedServer(self.get_serverconfig().get_memcached_server_list(), "taskserver", verbose=self.verbose)
+        mc = RedisServer(self.get_serverconfig().get_memcached_server_list(), "taskserver", verbose=self.verbose)
         mc.set_spinlock_untill_received("runtasks", self.get_serverconfig().get_namespace())
 
     def join(self, progressf=None, max_wait=None):
@@ -320,5 +320,5 @@ class CryptoTask(SaveObjectGoogle):
                 if runtime > max_wait:
                     raise TaskException("max_wait is reached " + str(max_wait))
 
-            mc = MemcachedServer(self.get_serverconfig().get_memcached_server_list(), "taskserver", verbose=self.verbose)
+            mc = RedisServer(self.get_serverconfig().get_memcached_server_list(), "taskserver", verbose=self.verbose)
             mc.set("runtasks", self.get_serverconfig().get_namespace())

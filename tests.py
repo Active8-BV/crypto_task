@@ -184,7 +184,7 @@ class CryptoTaskTest(unittest.TestCase):
             """
             kill
             """
-            mc = MemcachedServer(self.serverconfig.get_memcached_server_list(), "taskserver")
+            mc = RedisServer(self.serverconfig.get_memcached_server_list(), "taskserver")
             mc.set_spinlock_untill_received("runtasks", "kill", spin_seconds=4)
 
         threading.Timer(delay, kill).start()
