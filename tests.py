@@ -155,15 +155,21 @@ class CryptoTaskTest(unittest.TestCase):
         self.assertEqual(e, e1)
         self.assertEqual(self.serverconfig.get_namespace(), sc.get_namespace())
 
-    def test_start_join(self):
+    def start_cron(self, verbose=False):
         """
-        test_start_join
+        @type verbose: bool
         """
-        cronjob = subprocess.Popen(["/usr/local/bin/python", "cronjob.py", "-v"], cwd="/Users/rabshakeh/workspace/cryptobox/crypto_taskworker")  #, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        ans = AddNumersSlow(self.serverconfig, "user_1234")
-        ans.add(2, 5)
-        self.assertEqual(ans.run(), 7)
-        self.assertEqual(ans.m_result, "")
+        if verbose:
+            cronjob = subprocess.Popen(["/usr/local/bin/python", "cronjob.py", "-v"], cwd="/Users/rabshakeh/workspace/cryptobox/crypto_taskworker")
+        else:
+            cronjob = subprocess.Popen(["/usr/local/bin/python", "cronjob.py"], cwd="/Users/rabshakeh/workspace/cryptobox/crypto_taskworker")
+
+        return cronjob
+
+    def killcron(self, cronjob):
+        """
+        @type cronjob: str
+        """
 
         def kill():
             """
@@ -175,7 +181,27 @@ class CryptoTaskTest(unittest.TestCase):
         threading.Timer(1, kill).start()
         cronjob.wait()
 
+    def test_kill_cron(self):
+        """
+        test_kill_cron
+        """
+        cronjob = self.start_cron()
+        self.killcron(cronjob)
+
+    def test_start_join(self):
+        """
+        test_start_join
+        """
+        cronjob = self.start_cron(True)
+        ans = AddNumersSlow(self.serverconfig, "user_1234")
+        ans.add(2, 5)
+        ans = AddNumersSlow(self.serverconfig, "user_1234")
+        ans.add(2, 5)
+        self.assertEqual(ans.run(), 7)
+        self.assertEqual(ans.m_result, "")
+        self.killcron(cronjob)
+
 
 if __name__ == '__main__':
-    print "tests.py:180", 'crypto_task unittest'
+    print "tests.py:206", 'crypto_task unittest'
     unittest.main(failfast=True)
