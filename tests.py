@@ -201,7 +201,6 @@ class CryptoTaskTest(unittest.TestCase):
         """
         test_start_join
         """
-
         cronjob = self.start_cron()
         self.serverconfig.event("nunm1")
         ans = AddNumersSlow(self.serverconfig, "user_1234", verbose=True)
@@ -214,12 +213,11 @@ class CryptoTaskTest(unittest.TestCase):
         ans.add(2, 5)
         ans.start()
         ans.join()
-        self.serverconfig.event("done")
-        self.serverconfig.report_measurements()
-        #self.assertEqual(ans.run(), 7)
-        #self.assertEqual(ans.m_result, "")
+        self.assertEqual(ans.m_result, 7)
         self.killcron(cronjob, 1)
 
+        self.serverconfig.event("done")
+        self.serverconfig.report_measurements()
 
 if __name__ == '__main__':
     print "tests.py:214", 'crypto_task unittest'
