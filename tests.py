@@ -11,11 +11,11 @@ def add_paths():
     """
     import os
     import sys
-
     sys.path.append(os.path.normpath(os.path.join(os.getcwd(), "..")))
 
 
 add_paths()
+import unittest
 from __init__ import *
 from couchdb_api import ServerConfig, gds_delete_namespace
 
@@ -171,12 +171,11 @@ class CryptoTaskTest(unittest.TestCase):
         else:
             cronjob = subprocess.Popen(["/usr/local/bin/python", "crypto_taskworker.py"], cwd="/Users/rabshakeh/workspace/cryptobox/crypto_taskworker")
 
-
         return cronjob
 
     def killcron(self):
         """
-        @type cronjob: subprocess.Popen
+
         """
         rs = RedisServer("taskserver")
         rs.emit_event("runtasks", "kill")
@@ -192,7 +191,7 @@ class CryptoTaskTest(unittest.TestCase):
         """
         test_start_join
         """
-        cronjob = self.start_cron()
+        self.start_cron()
         self.serverconfig.event("nunm1")
         ans = AddNumersSlow(self.serverconfig, "user_1234")
         ans.add(2, 5)
@@ -204,7 +203,7 @@ class CryptoTaskTest(unittest.TestCase):
         ans.start()
         ans.join()
         self.assertEqual(ans.m_result, 7)
-        self.killcron(cronjob, 1)
+        self.killcron()
         self.serverconfig.event("done")
         self.serverconfig.report_measurements()
 

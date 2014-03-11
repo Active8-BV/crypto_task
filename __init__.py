@@ -288,7 +288,7 @@ class CryptoTask(SaveObjectGoogle):
         self.m_callable_p64s = dict_callable
         self.save(store_in_datastore=False)
         rs = RedisServer("taskserver", verbose=self.verbose)
-        rs.set_spinlock_untill_received("runtasks", self.get_serverconfig().get_namespace())
+        rs.emit_event("runtasks", self.get_serverconfig().get_namespace())
 
     def join(self, progressf=None, max_wait=None):
         """
