@@ -17,7 +17,7 @@ def add_paths():
 add_paths()
 import unittest
 from __init__ import *
-from couchdb_api import ServerConfig, gds_delete_namespace
+from couchdb_api import ServerConfig, gds_delete_namespace, console
 
 
 class AddNumers(CryptoTask):
@@ -166,18 +166,23 @@ class CryptoTaskTest(unittest.TestCase):
         """
         @type verbose: bool
         """
-        if verbose:
-            cronjob = subprocess.Popen(["/usr/local/bin/python", "crypto_taskworker.py", "-v"], cwd="/Users/rabshakeh/workspace/cryptobox/crypto_taskworker")
-        else:
-            cronjob = subprocess.Popen(["/usr/local/bin/python", "crypto_taskworker.py"], cwd="/Users/rabshakeh/workspace/cryptobox/crypto_taskworker")
+        rs = RedisServer("taskserver")
 
-        return cronjob
+        if verbose:
+            p = subprocess.Popen(["/usr/local/bin/python", "crypto_taskserver.py", "-v"], cwd="/Users/rabshakeh/workspace/cryptobox/crypto_taskworker")
+        else:
+            p = subprocess.Popen(["/usr/local/bin/python", "crypto_taskserver.py"], cwd="/Users/rabshakeh/workspace/cryptobox/crypto_taskworker")
+
+        def started():
+            console("crypto_taskworker up!")
+        rs.wait_for_event("crypto_taskworker_started", started, wait_time=3)
+        return p
 
     def killcron(self):
         """
 
         """
-        rs = RedisServer("taskserver")
+
         rs.emit_event("runtasks", "kill")
 
     def test_kill_cron(self):
@@ -191,7 +196,11 @@ class CryptoTaskTest(unittest.TestCase):
         """
         test_start_join
         """
-        self.start_cron()
+
+        p = self.start_cron(True)
+        time.sleep(5)
+        return
+
         self.serverconfig.event("nunm1")
         ans = AddNumersSlow(self.serverconfig, "user_1234")
         ans.add(2, 5)
