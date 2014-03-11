@@ -167,33 +167,26 @@ class CryptoTaskTest(unittest.TestCase):
         @type verbose: bool
         """
         if verbose:
-            cronjob = subprocess.Popen(["/usr/local/bin/python", "cronjob.py", "-v"], cwd="/Users/rabshakeh/workspace/cryptobox/crypto_taskworker")
+            cronjob = subprocess.Popen(["/usr/local/bin/python", "crypto_taskworker.py", "-v"], cwd="/Users/rabshakeh/workspace/cryptobox/crypto_taskworker")
         else:
-            cronjob = subprocess.Popen(["/usr/local/bin/python", "cronjob.py"], cwd="/Users/rabshakeh/workspace/cryptobox/crypto_taskworker")
+            cronjob = subprocess.Popen(["/usr/local/bin/python", "crypto_taskworker.py"], cwd="/Users/rabshakeh/workspace/cryptobox/crypto_taskworker")
+
 
         return cronjob
 
-    def killcron(self, cronjob, delay=1):
+    def killcron(self):
         """
         @type cronjob: subprocess.Popen
         """
-
-        def kill():
-            """
-            kill
-            """
-            rs = RedisServer("taskserver")
-            rs.set_spinlock_untill_received("runtasks", "kill", spin_seconds=4)
-
-        threading.Timer(delay, kill).start()
-        cronjob.wait()
+        rs = RedisServer("taskserver")
+        rs.emit_event("runtasks", "kill")
 
     def test_kill_cron(self):
         """
         test_kill_cron
         """
-        cronjob = self.start_cron()
-        self.killcron(cronjob)
+        self.start_cron()
+        self.killcron()
 
     def test_start_join(self):
         """
