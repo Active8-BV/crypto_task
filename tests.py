@@ -3,8 +3,6 @@
 unit test for cryptotask
 """
 __author__ = 'rabshakeh'
-import unittest
-import threading
 
 
 def add_paths():
