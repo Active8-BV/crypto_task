@@ -287,8 +287,8 @@ class CryptoTask(SaveObjectGoogle):
         dict_callable["m_command_object"] = self.m_command_object
         self.m_callable_p64s = dict_callable
         self.save(store_in_datastore=False)
-        mc = RedisServer("taskserver", verbose=self.verbose)
-        mc.set_spinlock_untill_received("runtasks", self.get_serverconfig().get_namespace())
+        rs = RedisServer("taskserver", verbose=self.verbose)
+        rs.set_spinlock_untill_received("runtasks", self.get_serverconfig().get_namespace())
 
     def join(self, progressf=None, max_wait=None):
         """
@@ -320,5 +320,5 @@ class CryptoTask(SaveObjectGoogle):
                 if runtime > max_wait:
                     raise TaskException("max_wait is reached " + str(max_wait))
 
-            mc = RedisServer("taskserver", verbose=self.verbose)
-            mc.set("runtasks", self.get_serverconfig().get_namespace())
+            rs = RedisServer("taskserver", verbose=self.verbose)
+            rs.set("runtasks", self.get_serverconfig().get_namespace())

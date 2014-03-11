@@ -182,8 +182,8 @@ class CryptoTaskTest(unittest.TestCase):
             """
             kill
             """
-            mc = RedisServer("taskserver")
-            mc.set_spinlock_untill_received("runtasks", "kill", spin_seconds=4)
+            rs = RedisServer("taskserver")
+            rs.set_spinlock_untill_received("runtasks", "kill", spin_seconds=4)
 
         threading.Timer(delay, kill).start()
         cronjob.wait()
