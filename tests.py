@@ -169,9 +169,9 @@ class CryptoTaskTest(unittest.TestCase):
         rs = RedisServer("taskserver")
 
         if verbose:
-            p = subprocess.Popen(["/usr/local/bin/python", "crypto_taskserver.py", "-v"], cwd="/Users/rabshakeh/workspace/cryptobox/crypto_taskworker")
+            p = subprocess.Popen(["/usr/local/bin/python", "crypto_taskworker.py", "-v"], cwd="/Users/rabshakeh/workspace/cryptobox/crypto_taskworker")
         else:
-            p = subprocess.Popen(["/usr/local/bin/python", "crypto_taskserver.py"], cwd="/Users/rabshakeh/workspace/cryptobox/crypto_taskworker")
+            p = subprocess.Popen(["/usr/local/bin/python", "crypto_taskworker.py"], cwd="/Users/rabshakeh/workspace/cryptobox/crypto_taskworker")
 
         def started():
             console("crypto_taskworker up!")
