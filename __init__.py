@@ -17,39 +17,7 @@ import subprocess
 import inflection
 from Crypto import Random
 import mailer
-from couchdb_api import SaveObjectGoogle, console_warning, RedisServer
-
-
-def send_error(displayfrom, subject, body):
-    """
-    @type displayfrom: str
-    @type subject: str
-    @type body: str
-    """
-    if "lycia" in subprocess.check_output("hostname"):
-        console_warning("send_error", subject, body)
-        return
-
-    class Settings(object):
-        """
-        Settings
-        """
-        email_from_email = ""
-        email_from = ""
-
-    settings = Settings()
-    settings.email_from_email = "erik@a8.nl"
-    settings.email_from = displayfrom
-    settings.email_host = "mail.active8.nl"
-    settings.email_host_password = "48fi0b"
-    settings.email_host_user = "erik@active8.nl"
-    email = mailer.Email(settings)
-    #email.reply_email = ("erik@a8.nl", displayfrom)
-    email.to_email = ("sysadmin@a8.nl", "sysadmin@a8.nl")
-    email.subject = subject
-    #email.email_from = displayfrom
-    email.body = mailer.Body(body, txt=body)
-    email.send()
+from couchdb_api import SaveObjectGoogle, console_warning, RedisServer, RedisEventWaitTimeout
 
 
 def make_p_callable(the_callable, params):
@@ -199,27 +167,11 @@ class CryptoTask(SaveObjectGoogle):
 
         raise TaskException("get_data, key not found")
 
-    def display(self):
-        """ display string """
-        return self.m_command_object + " / " + self.object_id
-
-    def set_high_priority(self):
-        """
-        10 is highest
-        """
-        self.m_priority = 10
-
-    def set_medium_priority(self):
-        """
-        ordering task queue
-        """
-        self.m_priority = 5
-
     def total_execution_time(self):
         """ calculate total time """
         if self.m_stop_execution:
             return self.m_stop_execution - self.m_start_execution
-        raise Exception("total_execution_time: m_stop_execution not set")
+        raise TaskException("total_execution_time: m_stop_execution not set")
 
     def execution_time(self):
         """ calculate running time """
@@ -234,10 +186,10 @@ class CryptoTask(SaveObjectGoogle):
 
     def execute_callable(self, p_callable):
         """
-        @type p_callable: str
+        @type p_callable: dict
         """
         if not isinstance(p_callable, dict):
-            return False
+            raise TaskException("callable not dict")
 
         the_callable = types.FunctionType(marshal.loads(p_callable["marshaled_bytecode"]), globals(), cPickle.loads(p_callable["pickled_name"]), cPickle.loads(p_callable["pickled_arguments"]), cPickle.loads(p_callable["pickled_closure"]))
         return the_callable(self, *p_callable["params"])
@@ -252,9 +204,6 @@ class CryptoTask(SaveObjectGoogle):
         if not self.m_callable_p64s:
             self.save_callable(argc)
 
-        if not self.m_callable_p64s:
-            raise Exception("There is no callable saved in this object")
-
         self.m_start_execution = time.time()
         self.m_running = True
         Random.atfork()
@@ -265,6 +214,8 @@ class CryptoTask(SaveObjectGoogle):
         self.m_done = True
         self.m_stop_execution = time.time()
         self.save(store_in_datastore=False)
+        rs = RedisServer("taskserver", verbose=self.verbose)
+        rs.emit_event("taskdone", self.object_id)
 
     def save_callable(self, *argc):
         """
@@ -285,42 +236,54 @@ class CryptoTask(SaveObjectGoogle):
         @type argc:
         """
         if not self.m_crypto_user_object_id:
-            raise Exception("CryptoTask:start no crypto_user_object_id given")
+            raise TaskException("start: no crypto_user_object_id set")
 
         self.save_callable(argc)
         rs = RedisServer("taskserver", verbose=self.verbose)
         rs.emit_event("runtasks", self.get_serverconfig().get_namespace())
 
-    def join(self, progressf=None, max_wait=None):
+    def join(self, max_wait_seconds=None):
         """
-        @type progressf: function, None
-        @type max_wait: int
+        @type max_wait_seconds: float, None
         """
-        if not self.serverconfig:
-            raise Exception("No serverconfig")
 
-        last_progress = 0
-        start = time.time()
+        if self.m_done:
+            self.delete(delete_from_datastore=False)
+            return True
+
         rs = RedisServer("taskserver", verbose=self.verbose)
-        #rs.subscribe_on_event("taskdone", taskdone, max_wait)
-        while True:
-            if self.m_done:
-                self.delete(delete_from_datastore=False)
-                return self.m_success
 
-            if progressf:
-                if self.m_progress:
-                    if last_progress != self.m_progress:
-                        progressf(self.object_id, self.m_progress, self.m_total)
-                        last_progress = self.m_progress
+        def taskdone(taskid):
+            """
+            @type taskid: str
+            """
+            if taskid == self.object_id:
+                if self.m_done:
+                    self.delete(delete_from_datastore=False)
 
-            time.sleep(0.1)
-            self.load(load_from_datastore=False)
-            runtime = time.time() - start
+                return False
+            else:
+                # keep waiting
+                return True
+        try:
+            rs.wait_for_event("taskdone", taskdone, max_wait_seconds)
+        except RedisEventWaitTimeout:
+            object_name = self.object_id
+            cnt = 0
+            ot = object_name.replace(":", "_")
+            ots = ot.split("_")
+            ot = ""
 
-            if max_wait:
-                if runtime > max_wait:
-                    raise TaskException("max_wait is reached " + str(max_wait))
+            for e in ots:
+                if cnt != 2:
+                    ot += e
+                    ot += "_"
+                cnt += 1
+
+            object_name = ot.rstrip("_")
+            raise TaskException("Task: "+str(object_name)+" timed out")
+
+        return True
 
     def load(self, object_id=None, serverconfig=None, force_load=False, load_from_datastore=True):
         """
