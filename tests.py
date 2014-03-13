@@ -11,6 +11,7 @@ def add_paths():
     """
     import os
     import sys
+
     sys.path.append(os.path.normpath(os.path.join(os.getcwd(), "..")))
 
 
@@ -25,11 +26,12 @@ class AddNumers(CryptoTask):
     AddNumers
     """
 
-    def run(self):
+    def run(self, a, b):
         """
-        run
+        @type a: int
+        @type b: int
         """
-        return self.m_process_data_p64s["v1"] + self.m_process_data_p64s["v2"]
+        return a + b
 
 
 class AddNumersSlow(CryptoTask):
@@ -80,19 +82,37 @@ class CryptoTaskTest(unittest.TestCase):
         self.db_name = 'crypto_task_test'
         self.serverconfig = ServerConfig(self.db_name)
 
-    def test_task(self):
+    def test_task_run_not_implemented(self):
         """
-        test_task
+        test_task_run_not_implemented
+        """
+        task = CryptoTask(self.serverconfig, "user_1234")
+        with self.assertRaisesRegexp(TaskException, "no run method on class implemented"):
+            task.execute()
+
+    def test_task_run(self):
+        """
+        test_task_run
         """
         task = AddNumers(self.serverconfig, "user_1234")
-        with self.assertRaisesRegexp(TypeError, "NoneType' object has no attribute '__getitem__'"):
-            task.run()
+        result = task.run(5, 6)
+        self.assertEqual(result, 11)
+        self.assertEqual(task.m_result, '')
 
-        task.m_process_data_p64s = {"v1": 5,
-                                    "v2": 5}
+    def test_task_execute(self):
+        """
+        test_task_execute
+        """
+        return
 
-        result = task.run()
-        self.assertEqual(result, 10)
+        task = AddNumers(self.serverconfig, "user_1234")
+        task.execute(5, 6)
+        self.assertEqual(task.m_result, 11)
+
+    def foo(self):
+        """
+        """
+
         task.start()
         task2 = CryptoTask(self.serverconfig, "user_1234")
         task2.load(object_id=task.object_id)
@@ -108,6 +128,7 @@ class CryptoTaskTest(unittest.TestCase):
         task3.delete()
         task5 = CryptoTask(self.serverconfig, "user_1234")
         task5.load(object_id=task.object_id)
+
         with self.assertRaisesRegexp(Exception, "There is no callable saved in this object"):
             self.assertIsNone(task5.execute())
 
@@ -138,10 +159,13 @@ class CryptoTaskTest(unittest.TestCase):
         args, kwargs = task.get_data_as_param()
         apply(f, args, kwargs)
         self.assertEqual("hello", task.get_data("v1"))
+
         with self.assertRaisesRegexp(TaskException, "get_data, key not found"):
             task.get_data("helli")
+
         with self.assertRaisesRegexp(TaskException, "set_data, no params given"):
             task.set_data()
+
         with self.assertRaisesRegexp(TaskException, "get_data_as_param, no data set"):
             task.get_data_as_param()
 
@@ -162,61 +186,7 @@ class CryptoTaskTest(unittest.TestCase):
         self.assertEqual(e, e1)
         self.assertEqual(self.serverconfig.get_namespace(), sc.get_namespace())
 
-    def start_cron(self, verbose=False):
-        """
-        @type verbose: bool
-        """
-        rs = RedisServer("taskserver")
-
-        if verbose:
-            p = subprocess.Popen(["/usr/local/bin/python", "crypto_taskworker.py", "-v"], cwd="/Users/rabshakeh/workspace/cryptobox/crypto_taskworker")
-        else:
-            p = subprocess.Popen(["/usr/local/bin/python", "crypto_taskworker.py"], cwd="/Users/rabshakeh/workspace/cryptobox/crypto_taskworker")
-
-        def started():
-            console("crypto_taskworker up!")
-        rs.wait_for_event("crypto_taskworker_started", started, wait_time=3)
-        return p
-
-    def killcron(self):
-        """
-
-        """
-
-        rs.emit_event("runtasks", "kill")
-
-    def test_kill_cron(self):
-        """
-        test_kill_cron
-        """
-        self.start_cron()
-        self.killcron()
-
-    def test_start_join(self):
-        """
-        test_start_join
-        """
-
-        p = self.start_cron(True)
-        time.sleep(5)
-        return
-
-        self.serverconfig.event("nunm1")
-        ans = AddNumersSlow(self.serverconfig, "user_1234")
-        ans.add(2, 5)
-        ans.start()
-        ans.join()
-        self.serverconfig.event("nunm2")
-        ans = AddNumersSlow(self.serverconfig, "user_1234")
-        ans.add(2, 5)
-        ans.start()
-        ans.join()
-        self.assertEqual(ans.m_result, 7)
-        self.killcron()
-        self.serverconfig.event("done")
-        self.serverconfig.report_measurements()
-
 
 if __name__ == '__main__':
-    print "tests.py:222", 'crypto_task unittest'
+    print "tests.py:190", 'crypto_task unittest'
     unittest.main(failfast=True)

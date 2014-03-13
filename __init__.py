@@ -238,15 +238,19 @@ class CryptoTask(SaveObjectGoogle):
         """
         if not isinstance(p_callable, dict):
             return False
+
         the_callable = types.FunctionType(marshal.loads(p_callable["marshaled_bytecode"]), globals(), cPickle.loads(p_callable["pickled_name"]), cPickle.loads(p_callable["pickled_arguments"]), cPickle.loads(p_callable["pickled_closure"]))
         return the_callable(self, *p_callable["params"])
 
-    def execute(self):
+    def execute(self, *argc):
         """
-        execute
+        @param args:
         """
         if self.m_done:
             return self.m_result
+
+        if not self.m_callable_p64s:
+            self.save_callable(argc)
 
         if not self.m_callable_p64s:
             raise Exception("There is no callable saved in this object")
@@ -262,31 +266,29 @@ class CryptoTask(SaveObjectGoogle):
         self.m_stop_execution = time.time()
         self.save(store_in_datastore=False)
 
-    #noinspection PyMethodMayBeStatic
-    def run(self):
-        """
-        @raise RunError:
-        """
-        console_warning("run not implemented, don not use this class directly but inherit and override run")
-        return None
 
-    #noinspection PyUnusedLocal
-    def start(self, *argc, **argv):
+    def save_callable(self, *argc):
         """
-        start
         @param argc:
         @type argc:
-        @param argv:
-        @type argv:
+        """
+        if hasattr(self, "run"):
+            dict_callable = make_p_callable(self.run, argc)
+            dict_callable["m_command_object"] = self.m_command_object
+            self.m_callable_p64s = dict_callable
+            self.save(store_in_datastore=False)
+        else:
+            raise TaskException("no run method on class implemented")
+
+    def start(self, *argc):
+        """
+        @param argc:
+        @type argc:
         """
         if not self.m_crypto_user_object_id:
             raise Exception("CryptoTask:start no crypto_user_object_id given")
 
-            #noinspection PyUnresolvedReferences
-        dict_callable = make_p_callable(self.run, argc)
-        dict_callable["m_command_object"] = self.m_command_object
-        self.m_callable_p64s = dict_callable
-        self.save(store_in_datastore=False)
+        self.save_callable(argc)
         rs = RedisServer("taskserver", verbose=self.verbose)
         rs.emit_event("runtasks", self.get_serverconfig().get_namespace())
 
