@@ -81,12 +81,14 @@ class CryptoTaskTest(unittest.TestCase):
         """
         self.db_name = 'crypto_task_test'
         self.serverconfig = ServerConfig(self.db_name)
+        self.serverconfig.rs_flush_all()
 
     def test_task_run_not_implemented(self):
         """
         test_task_run_not_implemented
         """
         task = CryptoTask(self.serverconfig, "user_1234")
+
         with self.assertRaisesRegexp(TaskException, "no run method on class implemented"):
             task.execute()
 
@@ -103,34 +105,39 @@ class CryptoTaskTest(unittest.TestCase):
         """
         test_task_execute
         """
-        return
-
         task = AddNumers(self.serverconfig, "user_1234")
         task.execute(5, 6)
         self.assertEqual(task.m_result, 11)
 
-    def foo(self):
+    def test_task_execute_save(self):
         """
+        test_task_execute_save
         """
-
-        task.start()
+        task = AddNumers(self.serverconfig, "user_1234")
+        task.start(5, 6)
         task2 = CryptoTask(self.serverconfig, "user_1234")
         task2.load(object_id=task.object_id)
         task2.execute()
-        task2.save()
+        self.assertEqual(task2.m_result, 11)
         task3 = CryptoTask(self.serverconfig, "user_1234")
         task3.load(object_id=task.object_id)
-        self.assertEqual(task3.m_result, 10)
-        task4 = CryptoTask(self.serverconfig, "user_1234")
-        task4.load(object_id=task.object_id)
-        result_again = task4.execute()
-        self.assertEqual(result_again, 10)
-        task3.delete()
-        task5 = CryptoTask(self.serverconfig, "user_1234")
-        task5.load(object_id=task.object_id)
+        self.assertEqual(task3.m_result, 11)
 
-        with self.assertRaisesRegexp(Exception, "There is no callable saved in this object"):
-            self.assertIsNone(task5.execute())
+    def test_task_execute_join(self):
+        """
+        test_task_execute_join
+        """
+        task = AddNumers(self.serverconfig, "user_1234")
+        task.start(5, 6)
+        task2 = CryptoTask(self.serverconfig, "user_1234")
+        task2.load(object_id=task.object_id)
+        task2.execute()
+        task2.join()
+        self.assertEqual(task2.m_result, 11)
+        task3 = CryptoTask(self.serverconfig, "user_1234")
+
+        with self.assertRaisesRegexp(TaskException, "could not load task"):
+            task3.load(object_id=task.object_id)
 
     def test_set_get_data(self):
         """
@@ -188,5 +195,5 @@ class CryptoTaskTest(unittest.TestCase):
 
 
 if __name__ == '__main__':
-    print "tests.py:190", 'crypto_task unittest'
+    print "tests.py:197", 'crypto_task unittest'
     unittest.main(failfast=True)
