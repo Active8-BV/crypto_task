@@ -55,6 +55,13 @@ class TaskException(Exception):
     pass
 
 
+class TaskTimeOut(Exception):
+    """
+    TaskTimeOut
+    """
+    pass
+
+
 class CryptoTask(SaveObjectGoogle):
     """
     CryptoTask
@@ -240,13 +247,26 @@ class CryptoTask(SaveObjectGoogle):
 
         self.save_callable(argc)
         rs = RedisServer("taskserver", verbose=self.verbose)
+        rs.list_push("tasks", self.object_id)
         rs.emit_event("runtasks", self.get_serverconfig().get_namespace())
+
+    def human_object_name(self, object_name):
+        cnt = 0
+        ot = object_name.replace(":", "_")
+        ots = ot.split("_")
+        ot = ""
+        for e in ots:
+            if cnt != 2:
+                ot += e
+                ot += "_"
+            cnt += 1
+        object_name = ot.rstrip("_")
+        return object_name
 
     def join(self, max_wait_seconds=None):
         """
         @type max_wait_seconds: float, None
         """
-
         if self.m_done:
             self.delete(delete_from_datastore=False)
             return True
@@ -258,6 +278,7 @@ class CryptoTask(SaveObjectGoogle):
             @type taskid: str
             """
             if taskid == self.object_id:
+                self.load()
                 if self.m_done:
                     self.delete(delete_from_datastore=False)
 
@@ -268,20 +289,9 @@ class CryptoTask(SaveObjectGoogle):
         try:
             rs.wait_for_event("taskdone", taskdone, max_wait_seconds)
         except RedisEventWaitTimeout:
-            object_name = self.object_id
-            cnt = 0
-            ot = object_name.replace(":", "_")
-            ots = ot.split("_")
-            ot = ""
 
-            for e in ots:
-                if cnt != 2:
-                    ot += e
-                    ot += "_"
-                cnt += 1
-
-            object_name = ot.rstrip("_")
-            raise TaskException("Task: "+str(object_name)+" timed out")
+            object_name = self.human_object_name(self.object_id)
+            raise TaskTimeOut("Task: "+str(object_name)+" timed out")
 
         return True
 
