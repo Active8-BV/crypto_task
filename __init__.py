@@ -80,6 +80,8 @@ class CryptoTask(SaveObjectGoogle):
         self.m_done = False
         # was the execution successful, false if an exception in the callable occurred
         self.m_success = False
+        # possible stored exception
+        self.m_exception_pickle = None
         # stored exception base64
         self.m_b64_exception = ""
         # class created
@@ -214,15 +216,18 @@ class CryptoTask(SaveObjectGoogle):
         self.m_start_execution = time.time()
         self.m_running = True
         Random.atfork()
-        self.m_result = self.execute_callable(self.m_callable_p64s)
-        self.m_success = True
-        self.m_running = False
-        self.m_callable_p64s = None
-        self.m_done = True
-        self.m_stop_execution = time.time()
-        self.save(store_in_datastore=False)
-        rs = RedisServer("taskserver", verbose=self.verbose)
-        rs.emit_event("taskdone", self.object_id)
+        try:
+            self.m_result = self.execute_callable(self.m_callable_p64s)
+            self.m_success = True
+        except Exception, ex:
+            self.m_success = False
+            self.m_exception_pickle = cPickle.dumps(ex)
+        finally:
+            self.m_running = False
+            self.m_callable_p64s = None
+            self.m_done = True
+            self.m_stop_execution = time.time()
+            self.save(store_in_datastore=False)
 
     def save_callable(self, *argc):
         """
@@ -251,15 +256,20 @@ class CryptoTask(SaveObjectGoogle):
         rs.emit_event("runtasks", self.get_serverconfig().get_namespace())
 
     def human_object_name(self, object_name):
+        """
+        @type object_name: str
+        """
         cnt = 0
         ot = object_name.replace(":", "_")
         ots = ot.split("_")
         ot = ""
+
         for e in ots:
             if cnt != 2:
                 ot += e
                 ot += "_"
             cnt += 1
+
         object_name = ot.rstrip("_")
         return object_name
 
@@ -279,6 +289,7 @@ class CryptoTask(SaveObjectGoogle):
             """
             if taskid == self.object_id:
                 self.load()
+
                 if self.m_done:
                     self.delete(delete_from_datastore=False)
 
@@ -289,7 +300,6 @@ class CryptoTask(SaveObjectGoogle):
         try:
             rs.wait_for_event("taskdone", taskdone, max_wait_seconds)
         except RedisEventWaitTimeout:
-
             object_name = self.human_object_name(self.object_id)
             raise TaskTimeOut("Task: "+str(object_name)+" timed out")
 
