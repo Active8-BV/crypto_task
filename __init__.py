@@ -273,12 +273,22 @@ class CryptoTask(SaveObjectGoogle):
         object_name = ot.rstrip("_")
         return object_name
 
+    def delete_task_raise_exception(self):
+        """
+        delete_task_raise_exception
+        """
+        self.delete(delete_from_datastore=False)
+
+        if self.m_exception_pickle is not None:
+            ex = cPickle.loads(self.m_exception_pickle)
+            raise ex
+
     def join(self, max_wait_seconds=None):
         """
         @type max_wait_seconds: float, None
         """
         if self.m_done:
-            self.delete(delete_from_datastore=False)
+            self.delete_task_raise_exception()
             return True
 
         rs = RedisServer("taskserver", verbose=self.verbose)
@@ -291,7 +301,7 @@ class CryptoTask(SaveObjectGoogle):
                 self.load()
 
                 if self.m_done:
-                    self.delete(delete_from_datastore=False)
+                    self.delete_task_raise_exception()
 
                 return False
             else:
