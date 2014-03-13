@@ -81,7 +81,7 @@ class CryptoTaskTest(unittest.TestCase):
         """
         self.db_name = 'crypto_task_test'
         self.serverconfig = ServerConfig(self.db_name)
-        self.serverconfig.rs_flush_all()
+        self.serverconfig.rs_flush_namespace()
 
     def test_task_run_not_implemented(self):
         """
@@ -138,6 +138,14 @@ class CryptoTaskTest(unittest.TestCase):
 
         with self.assertRaisesRegexp(TaskException, "could not load task"):
             task3.load(object_id=task.object_id)
+
+    def test_task_execute_join2(self):
+        """
+        test_task_execute_join
+        """
+        task = AddNumers(self.serverconfig, "user_1234")
+        task.start(5, 6)
+        task.join()
 
     def test_set_get_data(self):
         """

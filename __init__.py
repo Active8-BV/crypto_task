@@ -301,7 +301,8 @@ class CryptoTask(SaveObjectGoogle):
 
         last_progress = 0
         start = time.time()
-
+        rs = RedisServer("taskserver", verbose=self.verbose)
+        rs.subscribe_on_event("taskdone", taskdone, max_wait)
         while True:
             if self.m_done:
                 self.delete(delete_from_datastore=False)
@@ -321,8 +322,8 @@ class CryptoTask(SaveObjectGoogle):
                 if runtime > max_wait:
                     raise TaskException("max_wait is reached " + str(max_wait))
 
-            rs = RedisServer("taskserver", verbose=self.verbose)
-            rs.set("runtasks", self.get_serverconfig().get_namespace())
+
+
 
     def load(self, object_id=None, serverconfig=None, force_load=False, load_from_datastore=True):
         """
