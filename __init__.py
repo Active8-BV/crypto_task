@@ -17,7 +17,7 @@ import subprocess
 import inflection
 from Crypto import Random
 import mailer
-from couchdb_api import SaveObjectGoogle, console, RedisServer, RedisEventWaitTimeout, strcmp
+from couchdb_api import SaveObjectGoogle, console, RedisServer, RedisEventWaitTimeout, strcmp, handle_ex, console_saved_exception
 
 
 def make_p_callable(the_callable, params):
@@ -219,9 +219,10 @@ class CryptoTask(SaveObjectGoogle):
         try:
             self.m_result = self.execute_callable(self.m_callable_p64s)
             self.m_success = True
-        except Exception:
+        except Exception, ex:
+            excstr = handle_ex(ex, give_string=True)
+            self.m_exception_pickle = excstr
             self.m_success = False
-            raise
 
         finally:
             self.m_running = False
@@ -254,7 +255,7 @@ class CryptoTask(SaveObjectGoogle):
         self.save_callable(argc)
         rs = RedisServer("taskserver", verbose=self.verbose)
         rs.list_push("tasks", self.object_id)
-        rs.emit_event("crypto_task/__init__.py:257", "runtasks", self.get_serverconfig().get_namespace())
+        rs.emit_event("crypto_task/__init__.py:259", "runtasks", self.get_serverconfig().get_namespace())
 
     def human_object_name(self, object_name):
         """
@@ -278,24 +279,21 @@ class CryptoTask(SaveObjectGoogle):
         """
         @type max_wait_seconds: float, None
         """
-        if self.m_done:
-            self.delete_task_raise_exception()
-            return True
-
         rs = RedisServer("taskserver", verbose=self.verbose)
 
         def taskdone(taskid):
             """
             @type taskid: str
             """
-            console("taskdone", taskid, self.object_id)
+            if self.verbose:
+                console("taskdone", taskid, self.object_id)
 
             if strcmp(taskid, self.object_id):
                 self.load()
 
                 if self.m_done:
                     self.delete(delete_from_datastore=False)
-
+                raise TaskException(self.m_exception_pickle)
                 return False
             else:
                 # keep waiting
