@@ -190,25 +190,8 @@ class CryptoTaskTest(unittest.TestCase):
         task = AddNumers(self.serverconfig, "user_1234")
         task.start(5, 6)
 
-        with self.assertRaisesRegexp(TaskException, "crypto_task_add-numers timed out"):
+        with self.assertRaisesRegexp(TaskTimeOut, "crypto_task_add-numers timed out"):
             task.join(max_wait_seconds=0.3)
-
-    def test_task_execute_join_wait(self):
-        """
-        test_task_execute_join_wait
-        """
-        task = [AddNumers(self.serverconfig, "user_1234")]
-
-        def execute():
-            """
-            execute
-            """
-            print "tests.py:206", "execute"
-            task[0].execute(5, 6)
-
-        threading.Timer(0.5, execute).start()
-        task[0].join(max_wait_seconds=2)
-        self.assertEqual(task[0].m_result, 11)
 
 
 if __name__ == '__main__':  # pragma: no cover

@@ -17,7 +17,7 @@ import subprocess
 import inflection
 from Crypto import Random
 import mailer
-from couchdb_api import SaveObjectGoogle, console_warning, RedisServer, RedisEventWaitTimeout
+from couchdb_api import SaveObjectGoogle, console, RedisServer, RedisEventWaitTimeout, strcmp
 
 
 def make_p_callable(the_callable, params):
@@ -219,9 +219,10 @@ class CryptoTask(SaveObjectGoogle):
         try:
             self.m_result = self.execute_callable(self.m_callable_p64s)
             self.m_success = True
-        except Exception, ex:
+        except Exception:
             self.m_success = False
-            self.m_exception_pickle = cPickle.dumps(ex)
+            raise
+
         finally:
             self.m_running = False
             self.m_callable_p64s = None
@@ -253,7 +254,7 @@ class CryptoTask(SaveObjectGoogle):
         self.save_callable(argc)
         rs = RedisServer("taskserver", verbose=self.verbose)
         rs.list_push("tasks", self.object_id)
-        rs.emit_event("crypto_task/__init__.py:256", "runtasks", self.get_serverconfig().get_namespace())
+        rs.emit_event("crypto_task/__init__.py:257", "runtasks", self.get_serverconfig().get_namespace())
 
     def human_object_name(self, object_name):
         """
@@ -273,16 +274,6 @@ class CryptoTask(SaveObjectGoogle):
         object_name = ot.rstrip("_")
         return object_name
 
-    def delete_task_raise_exception(self):
-        """
-        delete_task_raise_exception
-        """
-        self.delete(delete_from_datastore=False)
-
-        if self.m_exception_pickle is not None:
-            ex = cPickle.loads(self.m_exception_pickle)
-            raise ex
-
     def join(self, max_wait_seconds=None):
         """
         @type max_wait_seconds: float, None
@@ -297,21 +288,24 @@ class CryptoTask(SaveObjectGoogle):
             """
             @type taskid: str
             """
-            if taskid == self.object_id:
+            console("taskdone", taskid, self.object_id)
+
+            if strcmp(taskid, self.object_id):
                 self.load()
 
                 if self.m_done:
-                    self.delete_task_raise_exception()
+                    self.delete(delete_from_datastore=False)
 
                 return False
             else:
                 # keep waiting
                 return True
         try:
-            rs.wait_for_event("taskdone", taskdone, max_wait_seconds)
+            subscription = rs.subscribe_on_event("taskdone", taskdone)
+            subscription.join(max_wait_seconds)
         except RedisEventWaitTimeout:
             object_name = self.human_object_name(self.object_id)
-            raise TaskTimeOut("Task: "+str(object_name)+" timed out")
+            raise TaskTimeOut(str(object_name)+" timed out")
 
         return True
 
