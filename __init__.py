@@ -229,7 +229,7 @@ class CryptoTask(SaveObjectGoogle):
             self.m_callable_p64s = None
             self.m_done = True
             self.m_stop_execution = time.time()
-            self.save(store_in_datastore=False)
+            self.save(use_datastore=False)
 
     def save_callable(self, *argc):
         """
@@ -240,7 +240,7 @@ class CryptoTask(SaveObjectGoogle):
             dict_callable = make_p_callable(self.run, *argc)
             dict_callable["m_command_object"] = self.m_command_object
             self.m_callable_p64s = dict_callable
-            self.save(store_in_datastore=False)
+            self.save(use_datastore=False)
         else:
             raise TaskException("no run method on class implemented")
 
@@ -307,14 +307,14 @@ class CryptoTask(SaveObjectGoogle):
 
         return True
 
-    def load(self, object_id=None, serverconfig=None, force_load=False, load_from_datastore=True):
+    def load(self, object_id=None, serverconfig=None, force_load=False, use_datastore=True):
         """
         @type object_id: str, None
         @type serverconfig: ServerConfig, None
         @type force_load: bool
-        @type load_from_datastore: bool
+        @type use_datastore: bool
         """
-        result = super(CryptoTask, self).load(object_id, serverconfig, force_load, load_from_datastore)
+        result = super(CryptoTask, self).load(object_id, serverconfig, force_load, use_datastore)
 
         if not result:
             raise TaskException("could not load task")
