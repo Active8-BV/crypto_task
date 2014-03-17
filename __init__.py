@@ -252,7 +252,7 @@ class CryptoTask(SaveObjectGoogle):
         self.save_callable(argc)
         rs = RedisServer("taskserver", verbose=self.verbose)
         rs.list_push("tasks", self.object_id)
-        rs.emit_event("crypto_task/__init__.py:255", "runtasks", self.get_serverconfig().get_namespace())
+        rs.emit_event("crypto_task:255", "runtasks", self.get_serverconfig().get_namespace())
 
     def human_object_name(self, object_name):
         """
