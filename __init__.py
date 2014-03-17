@@ -13,11 +13,9 @@ import marshal
 import types
 import cPickle
 import uuid
-import subprocess
 import inflection
 from Crypto import Random
-import mailer
-from crypto_data import SaveObjectGoogle, console, RedisServer, RedisEventWaitTimeout, strcmp, handle_ex, console_saved_exception
+from crypto_data import SaveObjectGoogle, console, RedisServer, RedisEventWaitTimeout, strcmp, handle_ex
 
 
 def make_p_callable(the_callable, params):
@@ -203,7 +201,7 @@ class CryptoTask(SaveObjectGoogle):
         the_callable = types.FunctionType(marshal.loads(p_callable["marshaled_bytecode"]), globals(), cPickle.loads(p_callable["pickled_name"]), cPickle.loads(p_callable["pickled_arguments"]), cPickle.loads(p_callable["pickled_closure"]))
         return the_callable(self, *p_callable["params"])
 
-    def execute(self, *argc):
+    def execute(self, *args):
         """
         @param args:
         """
@@ -211,7 +209,7 @@ class CryptoTask(SaveObjectGoogle):
             return self.m_result
 
         if not self.m_callable_p64s:
-            self.save_callable(argc)
+            self.save_callable(args)
 
         self.m_start_execution = time.time()
         self.m_running = True
@@ -223,7 +221,6 @@ class CryptoTask(SaveObjectGoogle):
             excstr = handle_ex(ex, give_string=True)
             self.m_exception_pickle = excstr
             self.m_success = False
-
         finally:
             self.m_running = False
             self.m_callable_p64s = None
@@ -255,7 +252,7 @@ class CryptoTask(SaveObjectGoogle):
         self.save_callable(argc)
         rs = RedisServer("taskserver", verbose=self.verbose)
         rs.list_push("tasks", self.object_id)
-        rs.emit_event("crypto_task/__init__.py:259", "runtasks", self.get_serverconfig().get_namespace())
+        rs.emit_event("crypto_task/__init__.py:255", "runtasks", self.get_serverconfig().get_namespace())
 
     def human_object_name(self, object_name):
         """
@@ -279,6 +276,10 @@ class CryptoTask(SaveObjectGoogle):
         """
         @type max_wait_seconds: float, None
         """
+        if self.m_done is True:
+            self.delete(delete_from_datastore=False)
+            return True
+
         rs = RedisServer("taskserver", verbose=self.verbose)
 
         def taskdone(taskid):
@@ -293,8 +294,8 @@ class CryptoTask(SaveObjectGoogle):
 
                 if self.m_done:
                     self.delete(delete_from_datastore=False)
+
                 raise TaskException(self.m_exception_pickle)
-                return False
             else:
                 # keep waiting
                 return True

@@ -18,7 +18,6 @@ add_paths()
 import unittest
 from __init__ import *
 from crypto_data import ServerConfig, gds_delete_namespace
-import threading
 
 
 class AddNumers(CryptoTask):
@@ -45,7 +44,7 @@ class CryptoTaskTest(unittest.TestCase):
         """
         self.db_name = 'crypto_task_test'
         self.serverconfig = ServerConfig(self.db_name)
-        self.serverconfig.rs_flush_namespace()
+        self.serverconfig.get_rs().flush_namespace()
 
     def test_set_get_data(self):
         """
