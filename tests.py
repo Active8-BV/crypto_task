@@ -17,7 +17,7 @@ def add_paths():
 add_paths()
 import unittest
 from __init__ import *
-from couchdb_api import ServerConfig, gds_delete_namespace
+from crypto_data import ServerConfig, gds_delete_namespace
 import threading
 
 

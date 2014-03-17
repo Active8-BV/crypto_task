@@ -17,7 +17,7 @@ import subprocess
 import inflection
 from Crypto import Random
 import mailer
-from couchdb_api import SaveObjectGoogle, console, RedisServer, RedisEventWaitTimeout, strcmp, handle_ex, console_saved_exception
+from crypto_data import SaveObjectGoogle, console, RedisServer, RedisEventWaitTimeout, strcmp, handle_ex, console_saved_exception
 
 
 def make_p_callable(the_callable, params):
