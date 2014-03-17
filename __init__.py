@@ -252,7 +252,7 @@ class CryptoTask(SaveObjectGoogle):
         self.save_callable(argc)
         rs = RedisServer("taskserver", verbose=self.verbose)
         rs.list_push("tasks", self.object_id)
-        rs.emit_event("crypto_task:255", "runtasks", self.get_serverconfig().get_namespace())
+        rs.event_emit("runtasks", self.get_serverconfig().get_namespace())
 
     def human_object_name(self, object_name):
         """
@@ -299,12 +299,13 @@ class CryptoTask(SaveObjectGoogle):
             else:
                 # keep waiting
                 return True
+
         try:
-            subscription = rs.subscribe_on_event("taskdone", taskdone)
+            subscription = rs.event_subscribe("taskdone", taskdone)
             subscription.join(max_wait_seconds)
         except RedisEventWaitTimeout:
             object_name = self.human_object_name(self.object_id)
-            raise TaskTimeOut(str(object_name)+" timed out")
+            raise TaskTimeOut(str(object_name) + " timed out")
 
         return True
 
