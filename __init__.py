@@ -171,7 +171,6 @@ class CryptoTask(SaveObjectGoogle):
 
         if key in self.m_process_data_p64s:
             return self.m_process_data_p64s[key]
-
         raise TaskException("get_data, key not found")
 
     def total_execution_time(self):
@@ -286,16 +285,12 @@ class CryptoTask(SaveObjectGoogle):
             """
             @type taskid: str
             """
-
-
-
             if strcmp(taskid, self.object_id):
                 console("taskdone", taskid, self.object_id)
                 self.load()
 
                 if self.m_done:
                     self.delete(delete_from_datastore=False)
-
 
         try:
             rs.event_wait("taskdone", taskdone, max_wait_seconds)
