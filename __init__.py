@@ -308,34 +308,34 @@ class CryptoTask(SaveObjectGoogle):
         """
         if self.m_done is True:
             self.delete(delete_from_datastore=False)
-            return True
+        else:
+            rs = RedisServer("crypto_taskworker", verbose=self.verbose)
 
-        rs = RedisServer("crypto_taskworker", verbose=self.verbose)
+            def taskdone(taskid):
+                """
+                @type taskid: str
+                """
+                if strcmp(taskid, self.object_id):
+                    if self.verbose:
+                        console("taskdone", taskid, source_code_link())
 
-        def taskdone(taskid):
-            """
-            @type taskid: str
-            """
-            if strcmp(taskid, self.object_id):
-                if self.verbose:
-                    console("taskdone", taskid, source_code_link())
+                    self.load()
 
-                self.load()
+                    if self.m_done:
+                        self.delete(delete_from_datastore=False)
 
-                if self.m_done:
-                    self.delete(delete_from_datastore=False)
+            try:
+                rs.event_subscribe_wait("taskdone", taskdone, max_wait_seconds)
+            except RedisEventWaitTimeout:
+                object_name = self.human_object_name(self.object_id)
+                raise TaskTimeOut(str(object_name) + " timed out")
 
-        try:
-            rs.event_subscribe_wait("taskdone", taskdone, max_wait_seconds)
-
+        if self.m_task_exception is not None:
             if len(self.m_task_exception) > 0:
                 major_info = console_saved_exception(self.m_task_exception, False)
                 exc = TaskExecuteException(major_info)
                 exc.verbose = self.verbose
                 raise exc
-        except RedisEventWaitTimeout:
-            object_name = self.human_object_name(self.object_id)
-            raise TaskTimeOut(str(object_name) + " timed out")
 
         return True
 
