@@ -59,11 +59,11 @@ class TaskExecuteException(Exception):
     """
     verbose = False
     msg = ""
+
     def __str__(self):
         """
         __str__
         """
-
         if not hasattr(self, "msg"):
             self.msg = ""
 
@@ -146,6 +146,7 @@ class CryptoTask(SaveObjectGoogle):
         super(CryptoTask, self).__init__(serverconfig=serverconfig, comment="this object represents a command and stores intermediary results", object_id=object_id)
         self.object_type = "CryptoTask"
         self.m_extra_indexed_keys = ["m_done", "m_success", "m_created_time", "m_start_execution", "m_progress", "m_running", "m_command_object", "m_crypto_user_object_id"]
+        self.tasksubscription = None
 
     def set_data(self, *args, **kwargs):
         """
@@ -275,11 +276,32 @@ class CryptoTask(SaveObjectGoogle):
         @param argc:
         @type argc:
         """
+        if self.verbose:
+            console("task_start", self.object_id, color="magenta")
+
         if not self.m_crypto_user_object_id:
             raise TaskException("start: no crypto_user_object_id set")
 
         self.save_callable(argc)
         rs = RedisServer("crypto_taskworker", verbose=self.verbose)
+
+        def taskdone(taskid):
+            """
+            @type taskid: str
+            """
+            if taskid is None:
+                return
+
+            if self.verbose:
+                console("taskdone", taskid, source_code_link(), color="magenta")
+
+            if strcmp(taskid, self.object_id):
+                self.load()
+
+                if self.m_done:
+                    self.delete(delete_from_datastore=False)
+
+        self.tasksubscription = rs.event_subscribe("taskdone:"+str(self.object_id), taskdone)
         rs.list_push("tasks", self.object_id)
         rs.event_emit("runtasks", self.get_serverconfig().get_namespace())
 
@@ -305,33 +327,34 @@ class CryptoTask(SaveObjectGoogle):
         """
         @type max_wait_seconds: float, None
         """
+        if self.tasksubscription is None:
+            raise TaskException("task not started")
+
         if self.m_done is True:
-            self.delete(delete_from_datastore=False)
+            if self.object_id is not None:
+                self.delete(delete_from_datastore=False)
         else:
             rs = RedisServer("crypto_taskworker", verbose=self.verbose)
-
-            def taskdone(taskid):
-                """
-                @type taskid: str
-                """
-                if strcmp(taskid, self.object_id):
-                    if self.verbose:
-                        console("taskdone", taskid, source_code_link())
-
-                    self.load()
-
-                    if self.m_done:
-                        self.delete(delete_from_datastore=False)
-
             try:
-                rs.event_subscribe_wait("taskdone", taskdone, max_wait_seconds)
+                if max_wait_seconds:
+                    start = time.time()
+                    runtime = time.time() - start
+
+                    while runtime < max_wait_seconds:
+                        if self.tasksubscription.is_alive():
+                            time.sleep(0.1)
+                            rs.event_emit("runtasks", self.get_serverconfig().get_namespace())
+                            runtime = time.time() - start
+                        else:
+                            return False
+                    raise RedisEventWaitTimeout()
             except RedisEventWaitTimeout:
                 object_name = self.human_object_name(self.object_id)
                 raise TaskTimeOut(str(object_name) + " timed out")
 
         if self.m_task_exception is not None:
             if len(self.m_task_exception) > 0:
-                major_info = console_saved_exception(self.m_task_exception, False)
+                major_info = console_saved_exception(self.m_task_exception, True)
                 exc = TaskExecuteException(major_info)
                 exc.verbose = self.verbose
                 raise exc
