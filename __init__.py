@@ -293,7 +293,7 @@ class CryptoTask(SaveObjectGoogle):
                     self.delete(delete_from_datastore=False)
 
         try:
-            rs.event_wait("taskdone", taskdone, max_wait_seconds)
+            rs.event_subscribe_wait("taskdone", taskdone, max_wait_seconds)
         except RedisEventWaitTimeout:
             object_name = self.human_object_name(self.object_id)
             raise TaskTimeOut(str(object_name) + " timed out")
