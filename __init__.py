@@ -286,23 +286,19 @@ class CryptoTask(SaveObjectGoogle):
             """
             @type taskid: str
             """
-            if self.verbose:
-                console("taskdone", taskid, self.object_id)
+
+
 
             if strcmp(taskid, self.object_id):
+                console("taskdone", taskid, self.object_id)
                 self.load()
 
                 if self.m_done:
                     self.delete(delete_from_datastore=False)
 
-                raise TaskException(self.m_exception_pickle)
-            else:
-                # keep waiting
-                return True
 
         try:
-            subscription = rs.event_subscribe("taskdone", taskdone)
-            subscription.join(max_wait_seconds)
+            rs.event_wait("taskdone", taskdone, max_wait_seconds)
         except RedisEventWaitTimeout:
             object_name = self.human_object_name(self.object_id)
             raise TaskTimeOut(str(object_name) + " timed out")
