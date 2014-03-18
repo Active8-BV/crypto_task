@@ -249,7 +249,7 @@ class CryptoTask(SaveObjectGoogle):
             raise TaskException("start: no crypto_user_object_id set")
 
         self.save_callable(argc)
-        rs = RedisServer("taskserver", verbose=self.verbose)
+        rs = RedisServer("crypto_taskworker", verbose=self.verbose)
         rs.list_push("tasks", self.object_id)
         rs.event_emit("runtasks", self.get_serverconfig().get_namespace())
 
@@ -279,7 +279,7 @@ class CryptoTask(SaveObjectGoogle):
             self.delete(delete_from_datastore=False)
             return True
 
-        rs = RedisServer("taskserver", verbose=self.verbose)
+        rs = RedisServer("crypto_taskworker", verbose=self.verbose)
 
         def taskdone(taskid):
             """
