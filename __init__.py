@@ -57,13 +57,12 @@ class TaskExecuteException(Exception):
     """
     TaskExecuteException
     """
-
+    verbose = False
+    msg = ""
     def __str__(self):
         """
         __str__
         """
-        if not hasattr(self, "verbose"):
-            self.verbose = False
 
         if not hasattr(self, "msg"):
             self.msg = ""
