@@ -15,7 +15,7 @@ import cPickle
 import uuid
 import inflection
 from Crypto import Random
-from crypto_data import SaveObjectGoogle, console, RedisServer, RedisEventWaitTimeout, strcmp, handle_ex
+from crypto_data import SaveObjectGoogle, console, RedisServer, RedisEventWaitTimeout, strcmp, handle_ex, source_code_link, console_saved_exception
 
 
 def make_p_callable(the_callable, params):
@@ -53,6 +53,33 @@ class TaskException(Exception):
     pass
 
 
+class TaskExecuteException(Exception):
+    """
+    TaskExecuteException
+    """
+
+    def __str__(self):
+        """
+        __str__
+        """
+        if not hasattr(self, "verbose"):
+            self.verbose = False
+
+        if not hasattr(self, "msg"):
+            self.msg = ""
+
+        if len(self.message) > 0:
+            console_saved_exception("\n".join(self.message), self.verbose)
+
+            if len(self.message) > 1:
+                self.msg = self.message[1]
+            else:
+                self.msg = self.message[0]
+            self.message = []
+
+        return self.msg
+
+
 class TaskTimeOut(Exception):
     """
     TaskTimeOut
@@ -66,7 +93,11 @@ class CryptoTask(SaveObjectGoogle):
     """
 
     def __init__(self, serverconfig, crypto_user_object_id=None, verbose=False):
-        """ async execution, where the function 'run' is securely run in a new process """
+        """
+        @type serverconfig: ServerConfig
+        @type crypto_user_object_id: str, None
+        @type verbose: bool
+        """
         self.verbose = verbose
         # priority higher is sooner
         self.m_priority = 0
@@ -79,7 +110,7 @@ class CryptoTask(SaveObjectGoogle):
         # was the execution successful, false if an exception in the callable occurred
         self.m_success = False
         # possible stored exception
-        self.m_exception_pickle = None
+        self.m_task_exception = None
         # stored exception base64
         self.m_b64_exception = ""
         # class created
@@ -218,7 +249,7 @@ class CryptoTask(SaveObjectGoogle):
             self.m_success = True
         except Exception, ex:
             excstr = handle_ex(ex, give_string=True)
-            self.m_exception_pickle = excstr
+            self.m_task_exception = excstr
             self.m_success = False
         finally:
             self.m_running = False
@@ -286,7 +317,9 @@ class CryptoTask(SaveObjectGoogle):
             @type taskid: str
             """
             if strcmp(taskid, self.object_id):
-                console("taskdone", taskid, self.object_id)
+                if self.verbose:
+                    console("taskdone", taskid, source_code_link())
+
                 self.load()
 
                 if self.m_done:
@@ -294,6 +327,12 @@ class CryptoTask(SaveObjectGoogle):
 
         try:
             rs.event_subscribe_wait("taskdone", taskdone, max_wait_seconds)
+
+            if len(self.m_task_exception) > 0:
+                major_info = console_saved_exception(self.m_task_exception, False)
+                exc = TaskExecuteException(major_info)
+                exc.verbose = self.verbose
+                raise exc
         except RedisEventWaitTimeout:
             object_name = self.human_object_name(self.object_id)
             raise TaskTimeOut(str(object_name) + " timed out")
