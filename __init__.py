@@ -16,7 +16,7 @@ import uuid
 import inflection
 from Crypto import Random
 from crypto_data import SaveObjectGoogle, console, RedisServer, RedisEventWaitTimeout, strcmp, handle_ex, source_code_link, console_saved_exception
-
+from exceptions import *
 
 def make_p_callable(the_callable, params):
     """
@@ -68,7 +68,7 @@ class TaskExecuteException(Exception):
             self.msg = ""
 
         if len(self.message) > 0:
-            console_saved_exception("\n".join(self.message), True)
+            console_saved_exception("\n".join(self.message), self.verbose)
 
             if len(self.message) > 1:
                 self.msg = self.message[1]
@@ -341,7 +341,8 @@ class CryptoTask(SaveObjectGoogle):
                             runtime = time.time() - start
                         else:
                             break
-                    raise RedisEventWaitTimeout()
+                    if runtime > max_wait_seconds:
+                        raise RedisEventWaitTimeout()
                 else:
                     while self.tasksubscription.is_alive():
                         time.sleep(0.1)
@@ -355,9 +356,18 @@ class CryptoTask(SaveObjectGoogle):
             if self.m_task_exception is not None:
                 if len(self.m_task_exception) > 0:
                     major_info = console_saved_exception(self.m_task_exception, False)
-                    exc = TaskExecuteException(major_info)
+                    excclass = str(major_info[0]).strip().split(".")
+                    if len(excclass) > 1:
+                        excclass  = excclass[1].strip("'>")
+
+                    exc = TaskExecuteException("\n\n"+"\n".join(major_info))
+                    major_info[0] = excclass
                     exc.verbose = self.verbose
-                    raise exc
+                    globalvars = globals()
+                    if excclass in globalvars:
+                        raise globalvars[excclass]("\n\n"+"\n".join(major_info))
+                    else:
+                        raise exc
 
             return True
         finally:
