@@ -18,6 +18,7 @@ from Crypto import Random
 from crypto_data import SaveObjectGoogle, console, RedisServer, RedisEventWaitTimeout, strcmp, handle_ex, source_code_link, console_saved_exception
 from exceptions import *
 
+
 def make_p_callable(the_callable, params):
     """
     @type the_callable:
@@ -69,11 +70,28 @@ class TaskExecuteException(Exception):
 
         if len(self.message) > 0:
             console_saved_exception("\n".join(self.message), self.verbose)
-
-            if len(self.message) > 1:
-                self.msg = self.message[1]
-            else:
-                self.msg = self.message[0]
+            self.msg = "\n"
+            #if len(self.message) > 1:
+            #    self.msg += str(self.message[1]) + "\n"
+            #else:
+            #    if len(self.message) > 0:
+            #        self.msg += str(self.message[0]) + "\n"
+            cnt = 0
+            for i in self.args:
+                for j in i:
+                    if cnt == 0:
+                        self.msg += "** " + str(j) + " **\n"
+                    elif cnt < 3:
+                        if cnt < 2:
+                            self.msg += "  " + str(j)
+                            self.msg += ":"
+                        else:
+                            self.msg += " " + str(j)
+                    else:
+                        if cnt == 3:
+                            self.msg += "\n"
+                        self.msg += "  " + j + "\n"
+                    cnt += 1
             self.message = []
 
         return self.msg
@@ -297,7 +315,8 @@ class CryptoTask(SaveObjectGoogle):
 
             if strcmp(taskid, self.object_id):
                 self.load()
-        self.tasksubscription = rs.event_subscribe("taskdone:"+str(self.object_id), taskdone)
+
+        self.tasksubscription = rs.event_subscribe("taskdone:" + str(self.object_id), taskdone)
         rs.list_push("tasks", self.object_id)
         rs.event_emit("runtasks", self.get_serverconfig().get_namespace())
 
@@ -327,7 +346,6 @@ class CryptoTask(SaveObjectGoogle):
             if self.tasksubscription is None:
                 raise TaskException("task not started")
 
-
             rs = RedisServer("crypto_taskworker", verbose=self.verbose)
             try:
                 if max_wait_seconds:
@@ -352,20 +370,19 @@ class CryptoTask(SaveObjectGoogle):
                 object_name = self.human_object_name(self.object_id)
                 raise TaskTimeOut(str(object_name) + " timed out")
 
-
             if self.m_task_exception is not None:
                 if len(self.m_task_exception) > 0:
                     major_info = console_saved_exception(self.m_task_exception, False)
                     excclass = str(major_info[0]).strip().split(".")
                     if len(excclass) > 1:
-                        excclass  = excclass[1].strip("'>")
+                        excclass = excclass[1].strip("'>")
 
-                    exc = TaskExecuteException("\n\n"+"\n".join(major_info))
+                    exc = TaskExecuteException(major_info)
                     major_info[0] = excclass
                     exc.verbose = self.verbose
                     globalvars = globals()
                     if excclass in globalvars:
-                        raise globalvars[excclass]("\n\n"+"\n".join(major_info))
+                        raise globalvars[excclass]("\n\n" + "\n".join(major_info))
                     else:
                         raise exc
 
