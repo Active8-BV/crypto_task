@@ -297,10 +297,6 @@ class CryptoTask(SaveObjectGoogle):
 
             if strcmp(taskid, self.object_id):
                 self.load()
-
-                if self.m_done:
-                    self.delete(delete_from_datastore=False)
-
         self.tasksubscription = rs.event_subscribe("taskdone:"+str(self.object_id), taskdone)
         rs.list_push("tasks", self.object_id)
         rs.event_emit("runtasks", self.get_serverconfig().get_namespace())
@@ -327,13 +323,11 @@ class CryptoTask(SaveObjectGoogle):
         """
         @type max_wait_seconds: float, None
         """
-        if self.tasksubscription is None:
-            raise TaskException("task not started")
+        try:
+            if self.tasksubscription is None:
+                raise TaskException("task not started")
 
-        if self.m_done is True:
-            if self.object_id is not None:
-                self.delete(delete_from_datastore=False)
-        else:
+
             rs = RedisServer("crypto_taskworker", verbose=self.verbose)
             try:
                 if max_wait_seconds:
@@ -346,20 +340,29 @@ class CryptoTask(SaveObjectGoogle):
                             rs.event_emit("runtasks", self.get_serverconfig().get_namespace())
                             runtime = time.time() - start
                         else:
-                            return False
+                            break
                     raise RedisEventWaitTimeout()
+                else:
+                    while self.tasksubscription.is_alive():
+                        time.sleep(0.1)
+                        rs.event_emit("runtasks", self.get_serverconfig().get_namespace())
+
             except RedisEventWaitTimeout:
                 object_name = self.human_object_name(self.object_id)
                 raise TaskTimeOut(str(object_name) + " timed out")
 
-        if self.m_task_exception is not None:
-            if len(self.m_task_exception) > 0:
-                major_info = console_saved_exception(self.m_task_exception, True)
-                exc = TaskExecuteException(major_info)
-                exc.verbose = self.verbose
-                raise exc
 
-        return True
+            if self.m_task_exception is not None:
+                if len(self.m_task_exception) > 0:
+                    major_info = console_saved_exception(self.m_task_exception, False)
+                    exc = TaskExecuteException(major_info)
+                    exc.verbose = self.verbose
+                    raise exc
+
+            return True
+        finally:
+            if self.object_id is not None:
+                self.delete(delete_from_datastore=False)
 
     def load(self, object_id=None, serverconfig=None, force_load=False, use_datastore=True):
         """
