@@ -71,11 +71,7 @@ class TaskExecuteException(Exception):
         if len(self.message) > 0:
             console_saved_exception("\n".join(self.message), self.verbose)
             self.msg = "\n"
-            #if len(self.message) > 1:
-            #    self.msg += str(self.message[1]) + "\n"
-            #else:
-            #    if len(self.message) > 0:
-            #        self.msg += str(self.message[0]) + "\n"
+
             cnt = 0
             for i in self.args:
                 for j in i:
@@ -92,7 +88,7 @@ class TaskExecuteException(Exception):
                             self.msg += "\n"
                         self.msg += "  " + j + "\n"
                     cnt += 1
-            self.message = []
+
 
         return self.msg
 
@@ -313,7 +309,7 @@ class CryptoTask(SaveObjectGoogle):
             if self.verbose:
                 console("taskdone", taskid, source_code_link(), color="magenta")
 
-            if strcmp(taskid, self.object_id):
+            if taskid == self.object_id:
                 self.load()
 
         self.tasksubscription = rs.event_subscribe("taskdone:" + str(self.object_id), taskdone)
