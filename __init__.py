@@ -68,7 +68,7 @@ class TaskExecuteException(Exception):
             self.msg = ""
 
         if len(self.message) > 0:
-            console_saved_exception("\n".join(self.message), self.verbose)
+            console_saved_exception("\n".join(self.message), True)
 
             if len(self.message) > 1:
                 self.msg = self.message[1]

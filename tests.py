@@ -44,7 +44,7 @@ class CryptoTaskTest(unittest.TestCase):
         """
         self.db_name = 'crypto_task_test'
         self.serverconfig = ServerConfig(self.db_name)
-        self.serverconfig.get_rs().flush_namespace()
+        self.serverconfig.get_rs().flush_all()
 
     def test_set_get_data(self):
         """
@@ -175,7 +175,8 @@ class CryptoTaskTest(unittest.TestCase):
         task2 = CryptoTask(self.serverconfig, "user_1234")
         task2.load(object_id=task.object_id)
         task2.execute()
-        task2.join()
+        with self.assertRaisesRegexp(TaskException, "task not started"):
+            task2.join()
         self.assertEqual(task2.m_result, 11)
         task3 = CryptoTask(self.serverconfig, "user_1234")
 
