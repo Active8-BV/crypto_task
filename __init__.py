@@ -13,10 +13,12 @@ import marshal
 import types
 import cPickle
 import uuid
+from exceptions import *
+
 import inflection
 from Crypto import Random
-from crypto_data import SaveObjectGoogle, console, RedisServer, RedisEventWaitTimeout, strcmp, handle_ex, source_code_link, console_saved_exception
-from exceptions import *
+
+from crypto_data import SaveObjectGoogle, console, RedisServer, RedisEventWaitTimeout, handle_ex, source_code_link, console_saved_exception
 
 
 def make_p_callable(the_callable, params):
@@ -71,8 +73,8 @@ class TaskExecuteException(Exception):
         if len(self.message) > 0:
             console_saved_exception("\n".join(self.message), self.verbose)
             self.msg = "\n"
-
             cnt = 0
+
             for i in self.args:
                 for j in i:
                     if cnt == 0:
@@ -88,7 +90,6 @@ class TaskExecuteException(Exception):
                             self.msg += "\n"
                         self.msg += "  " + j + "\n"
                     cnt += 1
-
 
         return self.msg
 
@@ -311,7 +312,6 @@ class CryptoTask(SaveObjectGoogle):
 
             if taskid == self.object_id:
                 self.load()
-
         self.tasksubscription = rs.event_subscribe("taskdone:" + str(self.object_id), taskdone)
         rs.list_push("tasks", self.object_id)
         rs.event_emit("runtasks", self.get_serverconfig().get_namespace())
@@ -355,6 +355,7 @@ class CryptoTask(SaveObjectGoogle):
                             runtime = time.time() - start
                         else:
                             break
+
                     if runtime > max_wait_seconds:
                         raise RedisEventWaitTimeout()
                 else:
@@ -370,6 +371,7 @@ class CryptoTask(SaveObjectGoogle):
                 if len(self.m_task_exception) > 0:
                     major_info = console_saved_exception(self.m_task_exception, False)
                     excclass = str(major_info[0]).strip().split(".")
+
                     if len(excclass) > 1:
                         excclass = excclass[1].strip("'>")
 
@@ -377,6 +379,7 @@ class CryptoTask(SaveObjectGoogle):
                     major_info[0] = excclass
                     exc.verbose = self.verbose
                     globalvars = globals()
+
                     if excclass in globalvars:
                         raise globalvars[excclass]("\n\n" + "\n".join(major_info))
                     else:

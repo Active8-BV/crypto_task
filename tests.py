@@ -68,8 +68,8 @@ class CryptoTaskTest(unittest.TestCase):
             """
             self.assertEqual("foobarhelloworld", p1 + p2 + v1 + v2)
 
-        args, kwargs = task.get_data_as_param()
-        apply(f, args, kwargs)
+        args2, kwargs2 = task.get_data_as_param()
+        apply(f, args2, kwargs2)
         self.assertEqual("hello", task.get_data("v1"))
 
         with self.assertRaisesRegexp(TaskException, "get_data, key not found"):
@@ -196,4 +196,14 @@ class CryptoTaskTest(unittest.TestCase):
 
 if __name__ == '__main__':  # pragma: no cover
 
-    unittest.main()  # pragma: no cover
+    from optparse import OptionParser
+    parser = OptionParser()
+    parser.add_option("-c", "--class", dest="classname", default=None, help="UnitTest classname")
+    parser.add_option("-m", "--method", dest="method", default=None, help="UnitTest methodname (optional)")
+    (options, args) = parser.parse_args()
+
+    if options.classname is not None:
+        run_unit_test(options.classname, options.method, globals())
+    else:
+        unittest.main()
+
